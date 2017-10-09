@@ -1,18 +1,20 @@
-package com.dorin.chat;
+package com.dorin.transport;
 
 import java.net.*;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class ChatServer implements Runnable {
-    private ChatServerThread clients[] = new ChatServerThread[50];
+public class TransportServer implements Runnable {
+    private TransporterServerThread clients[] = new TransporterServerThread[50];
     private ServerSocket server;
     private Thread thread;
     private int clientCount;
-    private Queue<String> messages = new LinkedList<>();
+    private BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
-    private ChatServer(int port) {
+    public TransportServer(int port) {
         try {
             System.out.println("Binding to port " + port + ", please wait  ...");
             server = new ServerSocket(port);
@@ -42,7 +44,7 @@ public class ChatServer implements Runnable {
         }
     }
 
-    private void stop() {
+    public void stop() {
         if (thread != null) {
             thread.interrupt();
             thread = null;
@@ -58,12 +60,12 @@ public class ChatServer implements Runnable {
 
     synchronized void handle(int ID, String input) {
         System.out.println("Message: ID = " + ID + ", input = " + input);
+        messages.add(input);
         if (input.equals("EXIT")) {
             clients[findClient(ID)].send("EXIT");
             remove(ID);
         } else {
             for (int i = 0; i < clientCount; i++) {
-                messages.add(input);
                 clients[i].send(ID + ": " + input);
             }
         }
@@ -72,7 +74,7 @@ public class ChatServer implements Runnable {
     synchronized void remove(int ID) {
         int pos = findClient(ID);
         if (pos >= 0) {
-            ChatServerThread toTerminate = clients[pos];
+            TransporterServerThread toTerminate = clients[pos];
             System.out.println("Removing client thread " + ID + " at " + pos);
             if (pos < clientCount - 1)
                 for (int i = pos + 1; i < clientCount; i++)
@@ -90,7 +92,7 @@ public class ChatServer implements Runnable {
     private void addThread(Socket socket) {
         if (clientCount < clients.length) {
             System.out.println("Client accepted: " + socket);
-            clients[clientCount] = new ChatServerThread(this, socket);
+            clients[clientCount] = new TransporterServerThread(this, socket);
             try {
                 clients[clientCount].open();
                 clients[clientCount].start();
@@ -102,7 +104,7 @@ public class ChatServer implements Runnable {
             System.out.println("Client refused: maximum " + clients.length + " reached.");
     }
 
-    public static void main(String args[]) {
-        new ChatServer(8878);
+    public BlockingQueue<String> getMessages() {
+        return messages;
     }
 }

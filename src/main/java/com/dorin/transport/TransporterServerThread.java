@@ -1,16 +1,16 @@
-package com.dorin.chat;
+package com.dorin.transport;
 
 import java.net.*;
 import java.io.*;
 
-public class ChatServerThread extends Thread {
-    private ChatServer server;
+public class TransporterServerThread extends Thread {
+    private TransportServer server;
     private Socket socket;
     private int ID = -1;
     private DataInputStream streamIn;
     private DataOutputStream streamOut;
 
-    ChatServerThread(ChatServer server, Socket socket) {
+    TransporterServerThread(TransportServer server, Socket socket) {
         super();
         this.server = server;
         this.socket = socket;

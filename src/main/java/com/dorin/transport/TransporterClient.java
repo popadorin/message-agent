@@ -1,17 +1,17 @@
-package com.dorin.chat;
+package com.dorin.transport;
 
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
 
-public class ChatClient implements Runnable {
+public class TransporterClient implements Runnable {
     private Socket socket;
     private Thread thread;
     private String message;
     private DataOutputStream streamOut;
-    private ChatClientThread client;
+    private TransporterClientThread client;
 
-    private ChatClient(String serverName, int serverPort) {
+    public TransporterClient(String serverName, int serverPort) {
         System.out.println("Establishing connection. Please wait ...");
         try {
             socket = new Socket(serverName, serverPort);
@@ -48,7 +48,7 @@ public class ChatClient implements Runnable {
     private void start() throws IOException {
         streamOut = new DataOutputStream(socket.getOutputStream());
         if (thread == null) {
-            client = new ChatClientThread(this, socket);
+            client = new TransporterClientThread(this, socket);
             thread = new Thread(this);
             thread.start();
         }
@@ -69,7 +69,4 @@ public class ChatClient implements Runnable {
         client.interrupt();
     }
 
-    public static void main(String args[]) {
-        new ChatClient("localhost", 8878);
-    }
 }

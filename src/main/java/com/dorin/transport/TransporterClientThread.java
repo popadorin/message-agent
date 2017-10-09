@@ -1,14 +1,14 @@
-package com.dorin.chat;
+package com.dorin.transport;
 
 import java.net.*;
 import java.io.*;
 
-public class ChatClientThread extends Thread {
+public class TransporterClientThread extends Thread {
     private Socket socket;
-    private ChatClient client;
+    private TransporterClient client;
     private DataInputStream streamIn;
 
-    ChatClientThread(ChatClient client, Socket socket) {
+    TransporterClientThread(TransporterClient client, Socket socket) {
         this.client = client;
         this.socket = socket;
         open();
