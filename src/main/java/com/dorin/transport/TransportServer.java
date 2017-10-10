@@ -10,7 +10,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class TransportServer implements Runnable {
-    private TransporterServerThread clients[] = new TransporterServerThread[50];
+    private int maxNrOfClients = 50;
+    private TransporterServerThread clients[] = new TransporterServerThread[maxNrOfClients];
     private ServerSocket server;
     private Thread thread;
     private int clientCount;
@@ -68,9 +69,7 @@ public class TransportServer implements Runnable {
             remove(ID);
         } else {
             String message = messageQueue.removeMessage();
-            for (int i = 0; i < clientCount; i++) {
-                clients[i].send(ID + ": " + message);
-            }
+            sendToAllClients(ID + ": " + message);
         }
     }
 
@@ -107,4 +106,9 @@ public class TransportServer implements Runnable {
             System.out.println("Client refused: maximum " + clients.length + " reached.");
     }
 
+    public void sendToAllClients(String message) {
+        for (int i = 0; i < clientCount; i++) {
+            clients[i].send(message);
+        }
+    }
 }

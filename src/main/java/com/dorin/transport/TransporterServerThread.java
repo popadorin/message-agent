@@ -11,7 +11,6 @@ public class TransporterServerThread extends Thread {
     private DataOutputStream streamOut;
 
     TransporterServerThread(TransportServer server, Socket socket) {
-        super();
         this.server = server;
         this.socket = socket;
         ID = socket.getPort();

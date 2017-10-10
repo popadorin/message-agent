@@ -12,29 +12,30 @@ public class MessageBroker {
 
     public static void main(String[] args) {
 
-        new Thread(() -> {
-            transportServer = new TransportServer(8878);
-        }).start();
+        new Thread(() -> transportServer = new TransportServer(8878)).start();
 
         System.out.println("Type GET to stop the broker and print the messages!");
         boolean isStopped = false;
         while (!isStopped) {
-            Scanner scanner = new Scanner(System.in);
-            String userInput = scanner.nextLine();
+            String userInput = new Scanner(System.in).nextLine();
 
             if (userInput.toUpperCase().equals("POP")) {
                 System.out.println(messageQueue.removeMessage());
                 continue;
             }
 
+            if (userInput.toUpperCase().equals("SEND")) {
+                String message = new Scanner(System.in).nextLine();
+                transportServer.sendToAllClients(message);
+            }
+
             if (userInput.toUpperCase().equals("GET")) {
                 messages = messageQueue.getQueue();
                 transportServer.stop();
+                transportServer = null;
                 isStopped = true;
             }
         }
-
-        messages.forEach(System.out::println);
 
         System.out.println("Close MessageBroker");
     }
