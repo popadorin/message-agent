@@ -1,5 +1,7 @@
 package com.dorin.transport;
 
+import com.dorin.messagebroker.MessageQueue;
+
 import java.net.*;
 import java.io.*;
 import java.util.LinkedList;
@@ -12,7 +14,7 @@ public class TransportServer implements Runnable {
     private ServerSocket server;
     private Thread thread;
     private int clientCount;
-    private BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+    private MessageQueue messageQueue = MessageQueue.getInstance();
 
     public TransportServer(int port) {
         try {
@@ -60,13 +62,14 @@ public class TransportServer implements Runnable {
 
     synchronized void handle(int ID, String input) {
         System.out.println("Message: ID = " + ID + ", input = " + input);
-        messages.add(input);
+        messageQueue.addMessage(input);
         if (input.equals("EXIT")) {
             clients[findClient(ID)].send("EXIT");
             remove(ID);
         } else {
+            String message = messageQueue.removeMessage();
             for (int i = 0; i < clientCount; i++) {
-                clients[i].send(ID + ": " + input);
+                clients[i].send(ID + ": " + message);
             }
         }
     }
@@ -104,7 +107,4 @@ public class TransportServer implements Runnable {
             System.out.println("Client refused: maximum " + clients.length + " reached.");
     }
 
-    public BlockingQueue<String> getMessages() {
-        return messages;
-    }
 }
