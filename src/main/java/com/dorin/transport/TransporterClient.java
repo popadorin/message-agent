@@ -1,10 +1,13 @@
 package com.dorin.transport;
 
+import org.apache.log4j.Logger;
+
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
 
 public class TransporterClient implements Runnable {
+    private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private Socket socket;
     private Thread thread;
     private String message;
@@ -12,15 +15,15 @@ public class TransporterClient implements Runnable {
     private TransporterClientThread client;
 
     public TransporterClient(String serverName, int serverPort) {
-        System.out.println("Establishing connection. Please wait ...");
+        LOGGER.info("Establishing connection. Please wait ...");
         try {
             socket = new Socket(serverName, serverPort);
-            System.out.println("Connected: " + socket);
+            LOGGER.info("Connected: " + socket);
             start();
         } catch (UnknownHostException uhe) {
-            System.out.println("Host unknown: " + uhe.getMessage());
+            LOGGER.error("Host unknown: " + uhe.getMessage());
         } catch (IOException ioe) {
-            System.out.println("Unexpected exception: " + ioe.getMessage());
+            LOGGER.error("Unexpected exception: " + ioe.getMessage());
         }
     }
 
@@ -31,7 +34,7 @@ public class TransporterClient implements Runnable {
                 streamOut.writeUTF(message);
                 streamOut.flush();
             } catch (IOException ioe) {
-                System.out.println("Sending error: " + ioe.getMessage());
+                LOGGER.error("Sending error: " + ioe.getMessage());
                 stop();
             }
         }
@@ -39,10 +42,10 @@ public class TransporterClient implements Runnable {
 
     void handle(String msg) {
         if (msg.equals("EXIT")) {
-            System.out.println("Good bye. Press RETURN to exit ...");
+            LOGGER.info("Good bye. Press RETURN to exit ...");
             stop();
         } else
-            System.out.println(msg);
+            LOGGER.info(msg);
     }
 
     private void start() throws IOException {
@@ -63,7 +66,7 @@ public class TransporterClient implements Runnable {
             if (streamOut != null) streamOut.close();
             if (socket != null) socket.close();
         } catch (IOException ioe) {
-            System.out.println("Error closing ...");
+            LOGGER.error("Error closing ...");
         }
         client.close();
         client.interrupt();

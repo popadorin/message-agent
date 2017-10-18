@@ -1,11 +1,14 @@
 package com.dorin.messagebroker;
 
 import com.dorin.transport.TransportServer;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 
 public class MessageBroker {
+    private final static Logger LOGGER = Logger.getLogger(MessageBroker.class.getName());
     private static BlockingQueue<String> messages;
     private static TransportServer transportServer;
     private static MessageQueue messageQueue = MessageQueue.getInstance();
@@ -14,13 +17,13 @@ public class MessageBroker {
 
         new Thread(() -> transportServer = new TransportServer(8878)).start();
 
-        System.out.println("Type GET to stop the broker and print the messages!");
+        LOGGER.info("Type GET to stop the broker and print the messages!");
         boolean isStopped = false;
         while (!isStopped) {
             String userInput = new Scanner(System.in).nextLine();
 
             if (userInput.toUpperCase().equals("POP")) {
-                System.out.println(messageQueue.removeMessage());
+                LOGGER.info(messageQueue.removeMessage());
                 continue;
             }
 
@@ -37,7 +40,7 @@ public class MessageBroker {
             }
         }
 
-        System.out.println("Close MessageBroker");
+        LOGGER.info("Close MessageBroker");
     }
 
 }

@@ -1,9 +1,12 @@
 package com.dorin.transport;
 
+import org.apache.log4j.Logger;
+
 import java.net.*;
 import java.io.*;
 
-public class TransporterServerThread extends Thread {
+public class TransporterServerThread extends Thread implements ServerConnectionProtocol {
+    private Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private TransportServer server;
     private Socket socket;
     private int ID = -1;
@@ -16,29 +19,18 @@ public class TransporterServerThread extends Thread {
         ID = socket.getPort();
     }
 
-    void send(String msg) {
-        try {
-            streamOut.writeUTF(msg);
-            streamOut.flush();
-        } catch (IOException ioe) {
-            System.out.println(ID + " ERROR sending: " + ioe.getMessage());
-            server.remove(ID);
-            interrupt();
-        }
-    }
-
     int getID() {
         return ID;
     }
 
     public void run() {
-        System.out.println("Server Thread " + ID + " running.");
+        LOGGER.info("Server Thread " + ID + " running.");
         boolean isStopped = false;
         while (!isStopped) {
             try {
                 server.handle(ID, streamIn.readUTF());
             } catch (IOException ioe) {
-                System.out.println(ID + " ERROR reading: " + ioe.getMessage());
+                LOGGER.error(ID + " ERROR reading: " + ioe.getMessage());
                 server.remove(ID);
                 isStopped = true;
                 interrupt();
@@ -51,7 +43,20 @@ public class TransporterServerThread extends Thread {
         streamOut = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    void close() throws IOException {
+    @Override
+    public void send(String message) {
+        try {
+            streamOut.writeUTF(message);
+            streamOut.flush();
+        } catch (IOException ioe) {
+            LOGGER.error(ID + " ERROR sending: " + ioe.getMessage());
+            server.remove(ID);
+            this.interrupt();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
         if (socket != null) socket.close();
         if (streamIn != null) streamIn.close();
         if (streamOut != null) streamOut.close();

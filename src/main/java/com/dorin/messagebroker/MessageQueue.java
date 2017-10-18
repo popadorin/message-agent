@@ -1,10 +1,13 @@
 package com.dorin.messagebroker;
 
+import org.apache.log4j.Logger;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MessageQueue {
-    private static MessageQueue INSTANCE = null;
+    private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
+    private static MessageQueue INSTANCE;
     private BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
     private MessageQueue() {}
@@ -25,7 +28,7 @@ public class MessageQueue {
         try {
             queue.put(message);
         } catch (InterruptedException e) {
-            System.out.println("Interrupt exception occurred !");
+            LOGGER.error("Interrupt exception occurred !");
         }
     }
 

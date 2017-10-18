@@ -1,15 +1,13 @@
 package com.dorin.transport;
 
 import com.dorin.messagebroker.MessageQueue;
+import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class TransportServer implements Runnable {
+    private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private int maxNrOfClients = 50;
     private TransporterServerThread clients[] = new TransporterServerThread[maxNrOfClients];
     private ServerSocket server;
@@ -19,22 +17,22 @@ public class TransportServer implements Runnable {
 
     public TransportServer(int port) {
         try {
-            System.out.println("Binding to port " + port + ", please wait  ...");
+            LOGGER.info("Binding to port " + port + ", please wait  ...");
             server = new ServerSocket(port);
-            System.out.println("Server started: " + server);
+            LOGGER.info("Server started: " + server);
             start();
         } catch (IOException ioe) {
-            System.out.println("Can not bind to port " + port + ": " + ioe.getMessage());
+            LOGGER.error("Can not bind to port " + port + ": " + ioe.getMessage());
         }
     }
 
     public void run() {
         while (thread != null) {
             try {
-                System.out.println("Waiting for a client ...");
+                LOGGER.info("Waiting for a client ...");
                 addThread(server.accept());
             } catch (IOException ioe) {
-                System.out.println("Server accept error: " + ioe);
+                LOGGER.error("Server accept error: " + ioe);
                 stop();
             }
         }
@@ -62,7 +60,7 @@ public class TransportServer implements Runnable {
     }
 
     synchronized void handle(int ID, String input) {
-        System.out.println("Message: ID = " + ID + ", input = " + input);
+        LOGGER.info("Message: ID = " + ID + ", input = " + input);
         messageQueue.addMessage(input);
         if (input.equals("EXIT")) {
             clients[findClient(ID)].send("EXIT");
@@ -77,7 +75,7 @@ public class TransportServer implements Runnable {
         int pos = findClient(ID);
         if (pos >= 0) {
             TransporterServerThread toTerminate = clients[pos];
-            System.out.println("Removing client thread " + ID + " at " + pos);
+            LOGGER.info("Removing client thread " + ID + " at " + pos);
             if (pos < clientCount - 1)
                 for (int i = pos + 1; i < clientCount; i++)
                     clients[i - 1] = clients[i];
@@ -85,7 +83,7 @@ public class TransportServer implements Runnable {
             try {
                 toTerminate.close();
             } catch (IOException ioe) {
-                System.out.println("Error closing thread: " + ioe);
+                LOGGER.error("Error closing thread: " + ioe);
             }
             toTerminate.interrupt();
         }
@@ -93,17 +91,17 @@ public class TransportServer implements Runnable {
 
     private void addThread(Socket socket) {
         if (clientCount < clients.length) {
-            System.out.println("Client accepted: " + socket);
+            LOGGER.info("Client accepted: " + socket);
             clients[clientCount] = new TransporterServerThread(this, socket);
             try {
                 clients[clientCount].open();
                 clients[clientCount].start();
                 clientCount++;
             } catch (IOException ioe) {
-                System.out.println("Error opening thread: " + ioe);
+                LOGGER.error("Error opening thread: " + ioe);
             }
         } else
-            System.out.println("Client refused: maximum " + clients.length + " reached.");
+            LOGGER.info("Client refused: maximum " + clients.length + " reached.");
     }
 
     public void sendToAllClients(String message) {
@@ -111,4 +109,5 @@ public class TransportServer implements Runnable {
             clients[i].send(message);
         }
     }
+
 }

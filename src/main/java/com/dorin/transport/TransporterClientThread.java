@@ -1,9 +1,12 @@
 package com.dorin.transport;
 
+import org.apache.log4j.Logger;
+
 import java.net.*;
 import java.io.*;
 
 public class TransporterClientThread extends Thread {
+    private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private Socket socket;
     private TransporterClient client;
     private DataInputStream streamIn;
@@ -19,7 +22,7 @@ public class TransporterClientThread extends Thread {
         try {
             streamIn = new DataInputStream(socket.getInputStream());
         } catch (IOException ioe) {
-            System.out.println("Error getting input stream: " + ioe);
+            LOGGER.error("Error getting input stream: " + ioe);
             client.stop();
         }
     }
@@ -28,7 +31,7 @@ public class TransporterClientThread extends Thread {
         try {
             if (streamIn != null) streamIn.close();
         } catch (IOException ioe) {
-            System.out.println("Error closing input stream: " + ioe);
+            LOGGER.error("Error closing input stream: " + ioe);
         }
     }
 
@@ -38,7 +41,7 @@ public class TransporterClientThread extends Thread {
             try {
                 client.handle(streamIn.readUTF());
             } catch (IOException ioe) {
-                System.out.println("Listening error: " + ioe.getMessage());
+                LOGGER.error("Listening error: " + ioe.getMessage());
                 isStopped = true;
                 client.stop();
             }
