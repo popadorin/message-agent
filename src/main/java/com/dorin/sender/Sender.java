@@ -21,7 +21,7 @@ public class Sender {
                 case "SEND":
                     System.out.println("Type message:");
                     String message = new Scanner(System.in).nextLine();
-                    transport.sendToBroker(message);
+                    transport.send(message);
                     break;
                 case "EXIT":
                     isStopped = true;

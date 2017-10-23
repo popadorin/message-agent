@@ -1,6 +1,6 @@
 package com.dorin.sender;
 
 public interface TransportSender {
-    void sendToBroker(String message);
+    void send(String message);
     void close();
 }
