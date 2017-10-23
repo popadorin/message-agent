@@ -12,13 +12,14 @@ public class TransporterClientThread extends Thread {
     private DataInputStream streamIn;
 
     TransporterClientThread(TransporterClient client, Socket socket) {
+        LOGGER.info("New Thread connection successfully started");
         this.client = client;
         this.socket = socket;
-        open();
+        initializeReader();
         start();
     }
 
-    private void open() {
+    private void initializeReader() {
         try {
             streamIn = new DataInputStream(socket.getInputStream());
         } catch (IOException ioe) {
@@ -39,7 +40,7 @@ public class TransporterClientThread extends Thread {
         boolean isStopped = false;
         while (!isStopped) {
             try {
-                client.handle(streamIn.readUTF());
+                client.handleInput(streamIn.readUTF());
             } catch (IOException ioe) {
                 LOGGER.error("Listening error: " + ioe.getMessage());
                 isStopped = true;
@@ -47,4 +48,5 @@ public class TransporterClientThread extends Thread {
             }
         }
     }
+
 }

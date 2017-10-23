@@ -16,28 +16,30 @@ public class MessageBroker {
     public static void main(String[] args) {
 
         new Thread(() -> transportServer = new TransportServer(8878)).start();
-
-        LOGGER.info("Type GET to stop the broker and print the messages!");
+        LOGGER.info("MessageBroker started!");
+        LOGGER.info("Type STOP to stop the broker and print the messages!");
         boolean isStopped = false;
         while (!isStopped) {
             String userInput = new Scanner(System.in).nextLine();
 
-            if (userInput.toUpperCase().equals("POP")) {
-                LOGGER.info(messageQueue.removeMessage());
-                continue;
+            switch (userInput.toUpperCase()) {
+                case "POP":
+                    LOGGER.info(messageQueue.removeMessage());
+                    break;
+                case "SEND":
+                    String message = new Scanner(System.in).nextLine();
+                    transportServer.sendToAllClients(message);
+                    break;
+                case "STOP":
+                    messages = messageQueue.getQueue();
+                    transportServer.stop();
+                    transportServer = null;
+                    isStopped = true;
+                    break;
+                default:
+                    break;
             }
 
-            if (userInput.toUpperCase().equals("SEND")) {
-                String message = new Scanner(System.in).nextLine();
-                transportServer.sendToAllClients(message);
-            }
-
-            if (userInput.toUpperCase().equals("GET")) {
-                messages = messageQueue.getQueue();
-                transportServer.stop();
-                transportServer = null;
-                isStopped = true;
-            }
         }
 
         LOGGER.info("Close MessageBroker");

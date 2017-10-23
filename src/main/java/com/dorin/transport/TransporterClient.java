@@ -10,7 +10,6 @@ public class TransporterClient implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private Socket socket;
     private Thread thread;
-    private String message;
     private DataOutputStream streamOut;
     private TransporterClientThread client;
 
@@ -19,7 +18,8 @@ public class TransporterClient implements Runnable {
         try {
             socket = new Socket(serverName, serverPort);
             LOGGER.info("Connected: " + socket);
-            start();
+            streamOut = new DataOutputStream(socket.getOutputStream());
+            startNewThreadConnection();
         } catch (UnknownHostException uhe) {
             LOGGER.error("Host unknown: " + uhe.getMessage());
         } catch (IOException ioe) {
@@ -27,29 +27,30 @@ public class TransporterClient implements Runnable {
         }
     }
 
+    @Override
     public void run() {
-        while (thread != null) {
-            try {
-                message = new Scanner(System.in).nextLine();
-                streamOut.writeUTF(message);
-                streamOut.flush();
-            } catch (IOException ioe) {
-                LOGGER.error("Sending error: " + ioe.getMessage());
-                stop();
+        //
+    }
+
+    public void send(String message) throws IOException {
+        streamOut.writeUTF(message);
+        streamOut.flush();
+    }
+
+    void handleInput(String message) {
+        if (message.equals("EXIT")) {
+            LOGGER.info("Good bye. Press RETURN to exit ...");
+            stop();
+        } else {
+            boolean readMessage = true;
+            if (readMessage) {
+                LOGGER.info("Received message: " + message);
             }
+
         }
     }
 
-    void handle(String msg) {
-        if (msg.equals("EXIT")) {
-            LOGGER.info("Good bye. Press RETURN to exit ...");
-            stop();
-        } else
-            LOGGER.info(msg);
-    }
-
-    private void start() throws IOException {
-        streamOut = new DataOutputStream(socket.getOutputStream());
+    private void startNewThreadConnection() throws IOException {
         if (thread == null) {
             client = new TransporterClientThread(this, socket);
             thread = new Thread(this);
@@ -57,7 +58,7 @@ public class TransporterClient implements Runnable {
         }
     }
 
-    void stop() {
+    public void stop() {
         if (thread != null) {
             thread.interrupt();
             thread = null;
