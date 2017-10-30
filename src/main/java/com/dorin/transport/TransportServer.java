@@ -1,10 +1,11 @@
 package com.dorin.transport;
 
-import com.dorin.messagebroker.MessageQueue;
 import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class TransportServer implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
@@ -13,7 +14,7 @@ public class TransportServer implements Runnable {
     private ServerSocket server;
     private Thread thread;
     private int clientCount;
-    private MessageQueue messageQueue = MessageQueue.getInstance();
+    private BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
     public TransportServer(int port) {
         try {
@@ -40,6 +41,7 @@ public class TransportServer implements Runnable {
 
     private void start() {
         if (thread == null) {
+            LOGGER.info("start new thread");
             thread = new Thread(this);
             thread.start();
         }
@@ -52,42 +54,45 @@ public class TransportServer implements Runnable {
         }
     }
 
-    private int findClient(int ID) {
-        for (int i = 0; i < clientCount; i++)
-            if (clients[i].getID() == ID)
-                return i;
-        return -1;
-    }
+//    private int findClient(int ID) {
+//        for (int i = 0; i < clientCount; i++)
+//            if (clients[i].getID() == ID)
+//                return i;
+//        return -1;
+//    }
 
     synchronized void handle(int ID, String input) {
         LOGGER.info("Message: ID = " + ID + ", input = " + input);
-        messageQueue.addMessage(input);
-        if (input.equals("EXIT")) {
-            clients[findClient(ID)].send("EXIT");
-            remove(ID);
-        } else {
-            String message = messageQueue.removeMessage();
-            sendToAllClients(ID + ": " + message);
-        }
-    }
 
-    synchronized void remove(int ID) {
-        int pos = findClient(ID);
-        if (pos >= 0) {
-            TransporterServerThread toTerminate = clients[pos];
-            LOGGER.info("Removing client thread " + ID + " at " + pos);
-            if (pos < clientCount - 1)
-                for (int i = pos + 1; i < clientCount; i++)
-                    clients[i - 1] = clients[i];
-            clientCount--;
-            try {
-                toTerminate.close();
-            } catch (IOException ioe) {
-                LOGGER.error("Error closing thread: " + ioe);
-            }
-            toTerminate.interrupt();
-        }
+        messages.add(input);
+
+
+//        if (input.equals("EXIT")) {
+//            clients[findClient(ID)].send("EXIT");
+//            remove(ID);
+//        } else {
+//            String message = messageQueue.removeMessage();
+//            sendToAllClients(ID + ": " + message);
+//        }
     }
+//
+//    synchronized void remove(int ID) {
+//        int pos = findClient(ID);
+//        if (pos >= 0) {
+//            TransporterServerThread toTerminate = clients[pos];
+//            LOGGER.info("Removing client thread " + ID + " at " + pos);
+//            if (pos < clientCount - 1)
+//                for (int i = pos + 1; i < clientCount; i++)
+//                    clients[i - 1] = clients[i];
+//            clientCount--;
+//            try {
+//                toTerminate.close();
+//            } catch (IOException ioe) {
+//                LOGGER.error("Error closing thread: " + ioe);
+//            }
+//            toTerminate.interrupt();
+//        }
+//    }
 
     private void addThread(Socket socket) {
         if (clientCount < clients.length) {
@@ -106,8 +111,12 @@ public class TransportServer implements Runnable {
 
     public void sendToAllClients(String message) {
         for (int i = 0; i < clientCount; i++) {
-            clients[i].send(message);
+//            clients[i].send(message);
         }
+    }
+
+    public BlockingQueue<String> getMessages() {
+        return messages;
     }
 
 }
