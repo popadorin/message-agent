@@ -4,10 +4,10 @@ import com.dorin.transport.TransportServer;
 
 public class TransportBrokerImpl implements TransportBroker {
     private TransportServer transportServer;
+    private boolean status;
 
     public TransportBrokerImpl() {
         new Thread(() -> transportServer = new TransportServer(8878)).start();
-
     }
 
     @Override
@@ -17,7 +17,10 @@ public class TransportBrokerImpl implements TransportBroker {
 
     @Override
     public void listenToIncomingMessages() {
+        boolean isStopped = false;
+        while (isStopped) {
 
+        }
     }
 
     @Override

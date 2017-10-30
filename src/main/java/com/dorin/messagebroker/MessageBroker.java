@@ -1,8 +1,6 @@
 package com.dorin.messagebroker;
 
-import com.dorin.transport.TransportServer;
 import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
 
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
@@ -14,15 +12,19 @@ public class MessageBroker {
     private static MessageQueue messageQueue = MessageQueue.getInstance();
 
     public static void main(String[] args) {
-
         LOGGER.info("MessageBroker started!");
+
+        transport.listenToIncomingMessages();
+
         boolean isStopped = false;
         while (!isStopped) {
             String userInput = new Scanner(System.in).nextLine();
 
             switch (userInput.toUpperCase()) {
+                case "VIEW":
+                    System.out.println("Messages:");
+                    messages.forEach(System.out::println);
                 case "EXIT":
-                    messages = messageQueue.getQueue();
                     transport.close();
                     isStopped = true;
                     break;

@@ -14,6 +14,7 @@ public class TransporterServerThread extends Thread implements ServerConnectionP
     private DataOutputStream streamOut;
 
     TransporterServerThread(TransportServer server, Socket socket) {
+        LOGGER.info("Started");
         this.server = server;
         this.socket = socket;
         ID = socket.getPort();
@@ -48,6 +49,7 @@ public class TransporterServerThread extends Thread implements ServerConnectionP
         try {
             streamOut.writeUTF(message);
             streamOut.flush();
+            LOGGER.info("Successfully sent message");
         } catch (IOException ioe) {
             LOGGER.error(ID + " ERROR sending: " + ioe.getMessage());
             server.remove(ID);
