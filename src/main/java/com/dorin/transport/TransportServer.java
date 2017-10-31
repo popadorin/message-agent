@@ -4,16 +4,18 @@ import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.OptionalInt;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class TransportServer implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
-    private int maxNrOfClients = 50;
-    private TransporterServerThread clients[] = new TransporterServerThread[maxNrOfClients];
+    private final int MAXNROFCLIENTS = 50;
+    private List<TransporterServerThread> clients = new ArrayList<>();
     private ServerSocket server;
     private Thread thread;
-    private int clientCount;
     private BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
     public TransportServer(int port) {
@@ -21,7 +23,7 @@ public class TransportServer implements Runnable {
             LOGGER.info("Binding to port " + port + ", please wait  ...");
             server = new ServerSocket(port);
             LOGGER.info("Server started: " + server);
-            start();
+            startConnection();
         } catch (IOException ioe) {
             LOGGER.error("Can not bind to port " + port + ": " + ioe.getMessage());
         }
@@ -39,11 +41,9 @@ public class TransportServer implements Runnable {
         }
     }
 
-    private void start() {
-        if (thread == null) {
-            LOGGER.info("start new thread");
-            thread = new Thread(this);
-            thread.start();
+    public void sendToAllClients(String message) {
+        for (TransporterServerThread client : clients) {
+            client.send(message);
         }
     }
 
@@ -54,69 +54,60 @@ public class TransportServer implements Runnable {
         }
     }
 
-//    private int findClient(int ID) {
-//        for (int i = 0; i < clientCount; i++)
-//            if (clients[i].getID() == ID)
-//                return i;
-//        return -1;
-//    }
-
-    synchronized void handle(int ID, String input) {
-        LOGGER.info("Message: ID = " + ID + ", input = " + input);
-
-        messages.add(input);
-
-
-//        if (input.equals("EXIT")) {
-//            clients[findClient(ID)].send("EXIT");
-//            remove(ID);
-//        } else {
-//            String message = messageQueue.removeMessage();
-//            sendToAllClients(ID + ": " + message);
-//        }
-    }
-//
-//    synchronized void remove(int ID) {
-//        int pos = findClient(ID);
-//        if (pos >= 0) {
-//            TransporterServerThread toTerminate = clients[pos];
-//            LOGGER.info("Removing client thread " + ID + " at " + pos);
-//            if (pos < clientCount - 1)
-//                for (int i = pos + 1; i < clientCount; i++)
-//                    clients[i - 1] = clients[i];
-//            clientCount--;
-//            try {
-//                toTerminate.close();
-//            } catch (IOException ioe) {
-//                LOGGER.error("Error closing thread: " + ioe);
-//            }
-//            toTerminate.interrupt();
-//        }
-//    }
-
-    private void addThread(Socket socket) {
-        if (clientCount < clients.length) {
-            LOGGER.info("Client accepted: " + socket);
-            clients[clientCount] = new TransporterServerThread(this, socket);
-            try {
-                clients[clientCount].open();
-                clients[clientCount].start();
-                clientCount++;
-            } catch (IOException ioe) {
-                LOGGER.error("Error opening thread: " + ioe);
-            }
-        } else
-            LOGGER.info("Client refused: maximum " + clients.length + " reached.");
-    }
-
-    public void sendToAllClients(String message) {
-        for (int i = 0; i < clientCount; i++) {
-//            clients[i].send(message);
-        }
-    }
-
     public BlockingQueue<String> getMessages() {
         return messages;
     }
 
+    synchronized void handle(Integer id, String input) {
+        LOGGER.info("Message: id = " + id + ", input = " + input);
+
+        messages.add(input);
+    }
+
+    synchronized void remove(Integer id) {
+        OptionalInt position = findClient(id);
+        if (position.isPresent()) {
+            TransporterServerThread toTerminate = clients.get(position.getAsInt());
+            LOGGER.info("Removing client thread " + id + " at " + position);
+            try {
+                toTerminate.close();
+            } catch (IOException ioe) {
+                LOGGER.error("Error closing thread: " + ioe);
+            }
+            clients.remove(toTerminate);
+            toTerminate.interrupt();
+        }
+    }
+
+    private void startConnection() {
+        if (thread == null) {
+            LOGGER.info("start new thread");
+            thread = new Thread(this);
+            thread.start();
+        }
+    }
+
+    private void addThread(Socket socket) {
+        if (clients.size() < MAXNROFCLIENTS) {
+            LOGGER.info("Client accepted: " + socket);
+            clients.add(new TransporterServerThread(this, socket));
+            try {
+                clients.get(clients.size() - 1).open();
+                clients.get(clients.size() - 1).start();
+            } catch (IOException ioe) {
+                LOGGER.error("Error opening thread: " + ioe);
+            }
+        } else
+            LOGGER.info("Client refused: maximum " + clients.size() + " reached.");
+    }
+
+    private OptionalInt findClient(Integer id) {
+        OptionalInt result = OptionalInt.empty();
+        for (int i = 0; i < clients.size(); i++) {
+            if (clients.get(i).getID().equals(id)) {
+                result = OptionalInt.of(i);
+            }
+        }
+        return result;
+    }
 }

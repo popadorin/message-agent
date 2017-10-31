@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
-import java.util.Scanner;
 
 public class TransporterClient implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
@@ -19,7 +18,7 @@ public class TransporterClient implements Runnable {
             socket = new Socket(serverName, serverPort);
             LOGGER.info("Connected: " + socket);
             streamOut = new DataOutputStream(socket.getOutputStream());
-            startNewThreadConnection();
+            startNewConnection();
         } catch (UnknownHostException uhe) {
             LOGGER.error("Host unknown: " + uhe.getMessage());
         } catch (IOException ioe) {
@@ -50,7 +49,7 @@ public class TransporterClient implements Runnable {
         }
     }
 
-    private void startNewThreadConnection() throws IOException {
+    private void startNewConnection() throws IOException {
         if (thread == null) {
             client = new TransporterClientThread(this, socket);
             thread = new Thread(this);

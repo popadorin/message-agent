@@ -8,8 +8,6 @@ import java.util.concurrent.BlockingQueue;
 public class TransportBrokerImpl implements TransportBroker {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private TransportServer transportServer;
-    private boolean status;
-
 
     public TransportBrokerImpl() {
         LOGGER.info("Started");
