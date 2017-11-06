@@ -4,8 +4,9 @@ import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
+import java.util.Observable;
 
-public class TransporterClient implements Runnable {
+public class TransporterClient extends Observable implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private Socket socket;
     private Thread thread;
@@ -37,16 +38,19 @@ public class TransporterClient implements Runnable {
     }
 
     void handleInput(String message) {
-        if (message.equals("EXIT")) {
-            LOGGER.info("Good bye. Press RETURN to exit ...");
-            stop();
-        } else {
-            boolean readMessage = true;
-            if (readMessage) {
-                LOGGER.info("Received message: " + message);
-            }
-
-        }
+//        if (message.equals("EXIT")) {
+//            LOGGER.info("Good bye. Press RETURN to exit ...");
+//            stop();
+//        } else {
+//            boolean readMessage = true;
+//            if (readMessage) {
+//                LOGGER.info("Received message: " + message);
+//            }
+//
+//        }
+//        LOGGER.info("Received message: " + message);
+        setChanged();
+        notifyObservers(message);
     }
 
     private void startNewConnection() throws IOException {

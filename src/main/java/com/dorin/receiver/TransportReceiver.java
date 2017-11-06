@@ -1,7 +1,7 @@
 package com.dorin.receiver;
 
 public interface TransportReceiver {
-    String readFromBroker();
+    void listenFromBroker();
     void send(String message);
     void close();
 }

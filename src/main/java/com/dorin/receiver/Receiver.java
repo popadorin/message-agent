@@ -2,15 +2,32 @@ package com.dorin.receiver;
 
 import org.apache.log4j.Logger;
 
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 
-public class Receiver {
+public class Receiver implements Observer {
     private static final Logger LOGGER = Logger.getLogger(Receiver.class);
     private static final TransportReceiverImpl transport = new TransportReceiverImpl();
-    private static String message;
+
+    private Receiver() {
+        transport.addObserver(this);
+    }
 
     public static void main(String[] args) {
         LOGGER.info("Receiver started");
+
+        try {
+            Thread.sleep(2000);
+            transport.listenFromBroker();
+        } catch (InterruptedException e) {
+            LOGGER.error("thread sleep interrupted exception occurred!");
+        }
+
+        transport.listenFromBroker();
+
+
+        new Receiver(); // activate observer
 
         boolean isStopped = false;
         while (!isStopped) {
@@ -20,13 +37,9 @@ public class Receiver {
 
             switch (userInput.toUpperCase()) {
                 case "SEND":
-                    System.out.println("Type message:");
+                    System.out.println("Type message to Broker:");
                     String message = new Scanner(System.in).nextLine();
                     transport.send(message);
-                    break;
-                case "GET":
-                    message = transport.readFromBroker();
-                    LOGGER.info("Message from broker: " + message);
                     break;
                 case "EXIT":
                     isStopped = true;
@@ -38,5 +51,10 @@ public class Receiver {
         }
 
         LOGGER.info("Receiver Stopped");
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        LOGGER.info("Received message: " + arg);
     }
 }

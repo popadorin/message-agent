@@ -44,7 +44,7 @@ public class TransporterServerThread extends Thread {
         try {
             streamOut.writeUTF(message);
             streamOut.flush();
-            LOGGER.info("Successfully sent message: " + message);
+            LOGGER.info("Successfully sent message: " + message + ", to: " + id);
         } catch (IOException ioe) {
             LOGGER.error(id + " ERROR sending: " + ioe.getMessage());
             server.remove(id);
