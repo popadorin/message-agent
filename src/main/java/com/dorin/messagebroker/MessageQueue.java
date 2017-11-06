@@ -2,11 +2,12 @@ package com.dorin.messagebroker;
 
 import org.apache.log4j.Logger;
 
+import java.io.Serializable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class MessageQueue {
-    private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
+public class MessageQueue implements Serializable {
+    private transient final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private final BlockingQueue<Message> queue = new LinkedBlockingQueue<>();
 
     public void push(Message message) {
@@ -19,6 +20,10 @@ public class MessageQueue {
 
     public Message pop() {
         return queue.poll();
+    }
+
+    public BlockingQueue<Message> getQueue() {
+        return queue;
     }
 
 }

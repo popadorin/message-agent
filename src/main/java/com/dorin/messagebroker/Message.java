@@ -1,6 +1,8 @@
 package com.dorin.messagebroker;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
     private String content;
 
     public Message(String content) {
