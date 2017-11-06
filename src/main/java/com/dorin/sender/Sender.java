@@ -1,5 +1,6 @@
 package com.dorin.sender;
 
+import com.dorin.messagebroker.Message;
 import org.apache.log4j.Logger;
 
 import java.util.Scanner;
@@ -20,8 +21,8 @@ public class Sender {
             switch (userInput.toUpperCase()) {
                 case "SEND":
                     System.out.println("Type message:");
-                    String message = new Scanner(System.in).nextLine();
-                    transport.send(message);
+                    String messageContent = new Scanner(System.in).nextLine();
+                    transport.sendToBroker(new Message(messageContent));
                     break;
                 case "EXIT":
                     isStopped = true;

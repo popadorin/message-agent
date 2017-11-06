@@ -21,8 +21,8 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
     }
 
     @Override
-    public void sendToAll(String message) {
-        transportServer.sendToAllClients(message);
+    public void sendToAll(Message message) {
+        transportServer.sendToAllClients(message.getContent());
     }
 
     @Override
@@ -33,6 +33,7 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
     @Override
     public void update(Observable o, Object arg) {
         setChanged();
-        notifyObservers(arg);
+        Message receivedMessage = new Message(arg.toString());
+        notifyObservers(receivedMessage);
     }
 }

@@ -11,7 +11,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageBroker implements Observer {
     private final static Logger LOGGER = Logger.getLogger(MessageBroker.class.getName());
     private final static TransportBrokerImpl transport = new TransportBrokerImpl();
-    private static BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+    private static BlockingQueue<Message> allReceivedMessages = new LinkedBlockingQueue<>();
+    private final static MessageQueue generalMessageQueue = new MessageQueue();
 
     private MessageBroker() {
         transport.addObserver(this);
@@ -36,14 +37,14 @@ public class MessageBroker implements Observer {
             switch (userInput.toUpperCase()) {
                 case "VIEW":
                     System.out.println("Messages:");
-                    messages.forEach(System.out::println);
+                    allReceivedMessages.forEach(System.out::println);
                     break;
                 case "EXIT":
                     transport.close();
                     isStopped = true;
                     break;
                 case "SEND":
-                    transport.sendToAll(messages.peek());
+                    transport.sendToAll(allReceivedMessages.peek());
                 default:
                     break;
             }
@@ -56,10 +57,13 @@ public class MessageBroker implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         LOGGER.info("update with: observable - " + o + ", arg - " + arg);
-        messages.add(arg.toString());
+        allReceivedMessages.add((Message) arg);
 
-        String receivedMessage = messages.poll();
+        // put to queue
+        generalMessageQueue.push((Message) arg);
 
+        // get from queue and send to all consumers
+        Message receivedMessage = generalMessageQueue.pop();
         transport.sendToAll(receivedMessage);
     }
 }

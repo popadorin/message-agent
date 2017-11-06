@@ -1,5 +1,6 @@
 package com.dorin.receiver;
 
+import com.dorin.messagebroker.Message;
 import com.dorin.transport.TransporterClient;
 import org.apache.log4j.Logger;
 
@@ -22,9 +23,9 @@ public class TransportReceiverImpl extends Observable implements Observer, Trans
     }
 
     @Override
-    public void send(String message) {
+    public void send(Message message) {
         try {
-            transportClient.send(message);
+            transportClient.send(message.getContent());
         } catch (IOException e) {
             LOGGER.error("Problem on sending message to broker");
         }

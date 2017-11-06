@@ -7,24 +7,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class MessageQueue {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
-    private static MessageQueue INSTANCE;
-    private BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Message> queue = new LinkedBlockingQueue<>();
 
-    private MessageQueue() {}
-
-    public static MessageQueue getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new MessageQueue();
-        }
-
-        return INSTANCE;
-    }
-
-    public BlockingQueue<String> getQueue() {
-        return queue;
-    }
-
-    public void addMessage(String message) {
+    public void push(Message message) {
         try {
             queue.put(message);
         } catch (InterruptedException e) {
@@ -32,7 +17,7 @@ public class MessageQueue {
         }
     }
 
-    public String removeMessage() {
+    public Message pop() {
         return queue.poll();
     }
 
