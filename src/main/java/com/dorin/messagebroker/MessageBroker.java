@@ -2,18 +2,32 @@ package com.dorin.messagebroker;
 
 import org.apache.log4j.Logger;
 
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class MessageBroker {
+public class MessageBroker implements Observer {
     private final static Logger LOGGER = Logger.getLogger(MessageBroker.class.getName());
     private final static TransportBrokerImpl transport = new TransportBrokerImpl();
     private static BlockingQueue<String> messages = new LinkedBlockingQueue<>();
-//    private static MessageQueue messageQueue = MessageQueue.getInstance();
+
+    public MessageBroker() {
+        transport.addObserver(this);
+    }
 
     public static void main(String[] args) {
         LOGGER.info("MessageBroker started!");
+
+        try {
+            Thread.sleep(2000);    // because the transport could not be initialized yet
+            transport.listenToMessages();
+        } catch (InterruptedException e) {
+            LOGGER.error("thread sleep interrupted exception occurred!");
+        }
+
+        new MessageBroker();
 
         boolean isStopped = false;
         while (!isStopped) {
@@ -21,7 +35,6 @@ public class MessageBroker {
 
             switch (userInput.toUpperCase()) {
                 case "VIEW":
-                    messages = transport.getMessages();
                     System.out.println("Messages:");
                     messages.forEach(System.out::println);
                     break;
@@ -30,7 +43,6 @@ public class MessageBroker {
                     isStopped = true;
                     break;
                 case "SEND":
-                    messages = transport.getMessages();
                     transport.sendToAll(messages.peek());
                 default:
                     break;
@@ -41,4 +53,9 @@ public class MessageBroker {
         LOGGER.info("Close MessageBroker");
     }
 
+    @Override
+    public void update(Observable o, Object arg) {
+        LOGGER.info("update with: observable - " + o + ", arg - " + arg);
+        messages.add(arg.toString());
+    }
 }

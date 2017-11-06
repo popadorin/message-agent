@@ -6,17 +6,15 @@ import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 import java.util.OptionalInt;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
-public class TransportServer implements Runnable {
+public class TransportServer extends Observable implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private final int MAXNROFCLIENTS = 50;
     private List<TransporterServerThread> clients = new ArrayList<>();
     private ServerSocket server;
     private Thread thread;
-    private BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
     public TransportServer(int port) {
         try {
@@ -54,14 +52,11 @@ public class TransportServer implements Runnable {
         }
     }
 
-    public BlockingQueue<String> getMessages() {
-        return messages;
-    }
 
     synchronized void handle(Integer id, String input) {
         LOGGER.info("Message: id = " + id + ", input = " + input);
-
-        messages.add(input);
+        setChanged();
+        notifyObservers(input);
     }
 
     synchronized void remove(Integer id) {
