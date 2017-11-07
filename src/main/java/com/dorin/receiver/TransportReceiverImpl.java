@@ -2,6 +2,7 @@ package com.dorin.receiver;
 
 import com.dorin.messagebroker.Message;
 import com.dorin.transport.TransporterClient;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -25,7 +26,9 @@ public class TransportReceiverImpl extends Observable implements Observer, Trans
     @Override
     public void send(Message message) {
         try {
-            transportClient.send(message.getContent());
+            byte[] serializedMessage = SerializationUtils.serialize(message);
+            transportClient.send(serializedMessage);
+            LOGGER.info("Message successfully sent message to broker");
         } catch (IOException e) {
             LOGGER.error("Problem on sending message to broker");
         }
@@ -38,7 +41,9 @@ public class TransportReceiverImpl extends Observable implements Observer, Trans
 
     @Override
     public void update(Observable o, Object arg) {
+        Message message =  SerializationUtils.deserialize((byte[]) arg);
+
         setChanged();
-        notifyObservers(arg);
+        notifyObservers(message);
     }
 }

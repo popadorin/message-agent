@@ -1,6 +1,7 @@
 package com.dorin.messagebroker;
 
 import com.dorin.transport.TransportServer;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 
 import java.util.Observable;
@@ -22,7 +23,8 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
 
     @Override
     public void sendToAll(Message message) {
-        transportServer.sendToAllClients(message.getContent());
+        byte[] serializedMessage = SerializationUtils.serialize(message);
+        transportServer.sendToAllClients(serializedMessage);
     }
 
     @Override
@@ -32,8 +34,10 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
 
     @Override
     public void update(Observable o, Object arg) {
+        Message message = SerializationUtils.deserialize((byte [])arg);
+
+        LOGGER.info("UPDATE with arg: " + message);
         setChanged();
-        Message receivedMessage = new Message(arg.toString());
-        notifyObservers(receivedMessage);
+        notifyObservers(message);
     }
 }

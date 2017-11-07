@@ -4,10 +4,7 @@ import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Observable;
-import java.util.OptionalInt;
+import java.util.*;
 
 public class TransportServer extends Observable implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
@@ -39,7 +36,7 @@ public class TransportServer extends Observable implements Runnable {
         }
     }
 
-    public void sendToAllClients(String message) {
+    public void sendToAllClients(byte[] message) {
         for (TransporterServerThread client : clients) {
             client.send(message);
         }
@@ -52,9 +49,7 @@ public class TransportServer extends Observable implements Runnable {
         }
     }
 
-
-    synchronized void handle(Integer id, String input) {
-        LOGGER.info("Message: id = " + id + ", input = " + input);
+    synchronized void handle(Integer id, byte[] input) {
         setChanged();
         notifyObservers(input);
     }

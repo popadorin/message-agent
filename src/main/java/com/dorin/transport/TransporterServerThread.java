@@ -10,14 +10,14 @@ public class TransporterServerThread extends Thread {
     private TransportServer server;
     private Socket socket;
     private Integer id; // connection id
-    private DataInputStream streamIn;
-    private DataOutputStream streamOut;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
 
     TransporterServerThread(TransportServer server, Socket socket) {
         LOGGER.info("Started");
         this.server = server;
         this.socket = socket;
-        id = socket.getPort();
+        this.id = socket.getPort();
     }
 
     public void run() {
@@ -25,26 +25,29 @@ public class TransporterServerThread extends Thread {
         boolean isStopped = false;
         while (!isStopped) {
             try {
-                server.handle(id, streamIn.readUTF());
+                byte[] message = (byte[]) objectInputStream.readObject();
+                server.handle(id, message);
             } catch (IOException ioe) {
                 LOGGER.error(id + " ERROR reading: " + ioe.getMessage());
                 server.remove(id);
                 isStopped = true;
                 interrupt();
+            } catch (ClassNotFoundException e) {
+                LOGGER.error("Not found byte[] in the inputStream");
             }
         }
     }
 
     void open() throws IOException {
-        streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-        streamOut = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        objectInputStream = new ObjectInputStream(socket.getInputStream());
+        objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
     }
 
-    void send(String message) {
+    void send(byte[] message) {
         try {
-            streamOut.writeUTF(message);
-            streamOut.flush();
-            LOGGER.info("Successfully sent message: " + message + ", to: " + id);
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+            LOGGER.info("Successfully sent to " + id);
         } catch (IOException ioe) {
             LOGGER.error(id + " ERROR sending: " + ioe.getMessage());
             server.remove(id);
@@ -54,8 +57,8 @@ public class TransporterServerThread extends Thread {
 
     void close() throws IOException {
         if (socket != null) socket.close();
-        if (streamIn != null) streamIn.close();
-        if (streamOut != null) streamOut.close();
+        if (objectInputStream != null) objectInputStream.close();
+        if (objectOutputStream != null) objectOutputStream.close();
     }
 
     Integer getID() {

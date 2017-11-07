@@ -1,5 +1,6 @@
 package com.dorin.sender;
 
+import com.dorin.messagebroker.CommandType;
 import com.dorin.messagebroker.Message;
 import org.apache.log4j.Logger;
 
@@ -22,7 +23,7 @@ public class Sender {
                 case "SEND":
                     System.out.println("Type message:");
                     String messageContent = new Scanner(System.in).nextLine();
-                    transport.sendToBroker(new Message(messageContent));
+                    transport.sendToBroker(new Message(CommandType.PUT, messageContent));
                     break;
                 case "EXIT":
                     isStopped = true;

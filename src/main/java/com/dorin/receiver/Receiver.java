@@ -1,5 +1,6 @@
 package com.dorin.receiver;
 
+import com.dorin.messagebroker.CommandType;
 import com.dorin.messagebroker.Message;
 import org.apache.log4j.Logger;
 
@@ -27,7 +28,6 @@ public class Receiver implements Observer {
 
         transport.listenFromBroker();
 
-
         new Receiver(); // activate observer
 
         boolean isStopped = false;
@@ -40,7 +40,7 @@ public class Receiver implements Observer {
                 case "SEND":
                     System.out.println("Type message to Broker:");
                     String messageContent = new Scanner(System.in).nextLine();
-                    transport.send(new Message(messageContent));
+                    transport.send(new Message(CommandType.GET, messageContent));
                     break;
                 case "EXIT":
                     isStopped = true;

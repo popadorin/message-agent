@@ -9,7 +9,7 @@ public class TransporterClientThread extends Thread {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private Socket socket;
     private TransporterClient client;
-    private DataInputStream streamIn;
+    private ObjectInputStream objectInputStream;
 
     TransporterClientThread(TransporterClient client, Socket socket) {
         LOGGER.info("New Thread connection successfully started");
@@ -21,7 +21,7 @@ public class TransporterClientThread extends Thread {
 
     private void initializeReader() {
         try {
-            streamIn = new DataInputStream(socket.getInputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException ioe) {
             LOGGER.error("Error getting input stream: " + ioe);
             client.stop();
@@ -30,7 +30,7 @@ public class TransporterClientThread extends Thread {
 
     void close() {
         try {
-            if (streamIn != null) streamIn.close();
+            if (objectInputStream != null) objectInputStream.close();
         } catch (IOException ioe) {
             LOGGER.error("Error closing input stream: " + ioe);
         }
@@ -40,11 +40,14 @@ public class TransporterClientThread extends Thread {
         boolean isStopped = false;
         while (!isStopped) {
             try {
-                client.handleInput(streamIn.readUTF());
+                byte[] message = (byte []) objectInputStream.readObject();
+                client.handleInput(message);
             } catch (IOException ioe) {
                 LOGGER.error("Listening error: " + ioe.getMessage());
                 isStopped = true;
                 client.stop();
+            } catch (ClassNotFoundException e) {
+                LOGGER.info("ClassNotFoundException error on message reading");
             }
         }
     }

@@ -4,21 +4,22 @@ import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
+import java.util.Arrays;
 import java.util.Observable;
 
 public class TransporterClient extends Observable implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
     private Socket socket;
     private Thread thread;
-    private DataOutputStream streamOut;
     private TransporterClientThread client;
+    private ObjectOutputStream objectOutputStream;
 
     public TransporterClient(String serverName, int serverPort) {
         LOGGER.info("Establishing connection. Please wait ...");
         try {
             socket = new Socket(serverName, serverPort);
             LOGGER.info("Connected: " + socket);
-            streamOut = new DataOutputStream(socket.getOutputStream());
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             startNewConnection();
         } catch (UnknownHostException uhe) {
             LOGGER.error("Host unknown: " + uhe.getMessage());
@@ -32,12 +33,12 @@ public class TransporterClient extends Observable implements Runnable {
         //
     }
 
-    public void send(String message) throws IOException {
-        streamOut.writeUTF(message);
-        streamOut.flush();
+    public void send(byte[] message) throws IOException {
+        objectOutputStream.writeObject(message);
+        objectOutputStream.flush();
     }
 
-    void handleInput(String message) {
+    void handleInput(byte[] message) {
         setChanged();
         notifyObservers(message);
     }
@@ -56,7 +57,7 @@ public class TransporterClient extends Observable implements Runnable {
             thread = null;
         }
         try {
-            if (streamOut != null) streamOut.close();
+            if (objectOutputStream != null) objectOutputStream.close();
             if (socket != null) socket.close();
         } catch (IOException ioe) {
             LOGGER.error("Error closing ...");

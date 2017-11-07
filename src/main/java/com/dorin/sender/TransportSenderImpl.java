@@ -2,6 +2,7 @@ package com.dorin.sender;
 
 import com.dorin.messagebroker.Message;
 import com.dorin.transport.TransporterClient;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -19,7 +20,8 @@ public class TransportSenderImpl implements TransportSender {
     @Override
     public void sendToBroker(Message message) {
         try {
-            transportClient.send(message.getContent());
+            byte[] serializedMessage = SerializationUtils.serialize(message);
+            transportClient.send(serializedMessage);
             LOGGER.info("Message successfully sent to broker");
         } catch (IOException e) {
             LOGGER.error("Problem on sending message to broker");

@@ -60,7 +60,7 @@ public class MessageBroker implements Observer {
             }
 
             LOGGER.info("Close MessageBroker");
-        } catch (Throwable th) {
+        } catch (Exception ex) {
             backupMessageQueue(generalMessageQueue);
 
             LOGGER.error("Broker has been broken");
@@ -75,8 +75,8 @@ public class MessageBroker implements Observer {
         generalMessageQueue.push((Message) arg);
 
         // get from queue and send to all consumers
-//        Message receivedMessage = generalMessageQueue.pop();
-//        transport.sendToAll(receivedMessage);
+        Message receivedMessage = generalMessageQueue.pop();
+        transport.sendToAll(receivedMessage);
     }
 
     private static void backupMessageQueue(MessageQueue messageQueue) {
