@@ -36,7 +36,6 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
     public void update(Observable o, Object arg) {
         Message message = SerializationUtils.deserialize((byte [])arg);
 
-        LOGGER.info("UPDATE with arg: " + message);
         setChanged();
         notifyObservers(message);
     }

@@ -21,8 +21,8 @@ public class MessageBroker implements Observer {
 
     public static void main(String[] args) {
         try {
-
             LOGGER.info("MessageBroker started!");
+            System.out.println("Broker commands: BACKUP, GET BACKUP, VIEW, SEND, EXIT");
 
             try {
                 Thread.sleep(2000);    // because the transport could not be initialized yet
@@ -47,12 +47,13 @@ public class MessageBroker implements Observer {
                         System.out.println("Messages:");
                         generalMessageQueue.getQueue().forEach(System.out::println);
                         break;
+                    case "SEND":
+                        transport.sendToAll(generalMessageQueue.pop());
+                        break;
                     case "EXIT":
                         transport.close();
                         isStopped = true;
                         break;
-                    case "SEND":
-                        transport.sendToAll(generalMessageQueue.pop());
                     default:
                         break;
                 }
