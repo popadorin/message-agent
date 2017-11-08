@@ -1,6 +1,8 @@
 package com.dorin.messagebroker;
 
 import com.dorin.helpers.MessageInfo;
+import com.dorin.models.CommandType;
+import com.dorin.models.Message;
 import com.dorin.models.Subscriber;
 import com.dorin.helpers.MQBackuper;
 import org.apache.log4j.Logger;
@@ -10,10 +12,14 @@ import java.util.*;
 public class MessageBroker implements Observer {
     private final static Logger LOGGER = Logger.getLogger(MessageBroker.class.getName());
     private final static TransportBrokerImpl transport = new TransportBrokerImpl();
+    private static final String MQ_PATH = "./src/main/resources/messagequeue-backup";
+    private static final MQBackuper mqBackuper = new MQBackuper(MQ_PATH);
+
+    // subscribers
     private static final List<Subscriber> subscribers = new ArrayList<>();
+
+    // queues
     private static MessageQueue generalMessageQueue = new MessageQueue();
-    private static final String MESSAGEQUEUE_PATH = "./src/main/resources/messagequeue-backup";
-    private static final MQBackuper mqBackuper = new MQBackuper(MESSAGEQUEUE_PATH);
 
     private MessageBroker() {
         transport.addObserver(this);
@@ -54,7 +60,6 @@ public class MessageBroker implements Observer {
                         for (Subscriber subscriber : subscribers) {
                             transport.send(subscriber.getId(), generalMessageQueue.pop());
                         }
-
                         break;
                     case "EXIT":
                         transport.close();
@@ -81,8 +86,14 @@ public class MessageBroker implements Observer {
         LOGGER.info("update with: observable - " + o + ", arg - " + arg);
         treatMessageInput(inputInfo);
 
+        // send to all subscribers the sent message
+        if (inputInfo.getMessage().getCommandType().equals(CommandType.PUT)) {
+            Message message = generalMessageQueue.pop();
+            for (Subscriber subscriber : subscribers) {
+                transport.send(subscriber.getId(), message);
+            }
+        }
     }
-
 
     private void treatMessageInput(MessageInfo inputInfo) {
         switch (inputInfo.getMessage().getCommandType()) {
@@ -100,8 +111,5 @@ public class MessageBroker implements Observer {
         }
 
     }
-
-
-
-
+    
 }

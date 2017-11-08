@@ -7,16 +7,16 @@ import java.io.*;
 
 public class MQBackuper {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
-    private final String MESSAGEQUEUE_PATH;
+    private final String MQ_PATH;
 
     public MQBackuper(String path) {
-        this.MESSAGEQUEUE_PATH = path;
+        this.MQ_PATH = path;
     }
 
     public void backupMessageQueue(MessageQueue messageQueue) {
         try {
             ObjectOutputStream oos = new ObjectOutputStream(
-                    new FileOutputStream(new File(MESSAGEQUEUE_PATH)));
+                    new FileOutputStream(new File(MQ_PATH)));
 
             oos.writeObject(messageQueue);
             oos.close();
@@ -31,7 +31,7 @@ public class MQBackuper {
 
         try {
             ObjectInputStream ois = new ObjectInputStream(
-                    new FileInputStream(new File(MESSAGEQUEUE_PATH)));
+                    new FileInputStream(new File(MQ_PATH)));
             messageQueue = (MessageQueue) ois.readObject();
 
         } catch (ClassNotFoundException e) {
