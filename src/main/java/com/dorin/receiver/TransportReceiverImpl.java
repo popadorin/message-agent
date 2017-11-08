@@ -1,6 +1,6 @@
 package com.dorin.receiver;
 
-import com.dorin.messagebroker.Message;
+import com.dorin.models.Message;
 import com.dorin.transport.TransporterClient;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;

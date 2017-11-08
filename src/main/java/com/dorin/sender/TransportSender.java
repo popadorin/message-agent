@@ -1,6 +1,6 @@
 package com.dorin.sender;
 
-import com.dorin.messagebroker.Message;
+import com.dorin.models.Message;
 
 public interface TransportSender {
     void sendToBroker(Message message);

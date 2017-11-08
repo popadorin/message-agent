@@ -1,7 +1,7 @@
 package com.dorin.sender;
 
-import com.dorin.messagebroker.CommandType;
-import com.dorin.messagebroker.Message;
+import com.dorin.models.CommandType;
+import com.dorin.models.Message;
 import org.apache.log4j.Logger;
 
 import java.util.Scanner;

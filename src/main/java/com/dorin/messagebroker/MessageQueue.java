@@ -1,5 +1,6 @@
 package com.dorin.messagebroker;
 
+import com.dorin.models.Message;
 import org.apache.log4j.Logger;
 
 import java.io.Serializable;

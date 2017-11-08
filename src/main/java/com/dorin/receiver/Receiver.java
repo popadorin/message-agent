@@ -1,7 +1,7 @@
 package com.dorin.receiver;
 
-import com.dorin.messagebroker.CommandType;
-import com.dorin.messagebroker.Message;
+import com.dorin.models.CommandType;
+import com.dorin.models.Message;
 import org.apache.log4j.Logger;
 
 import java.util.Observable;
@@ -37,6 +37,9 @@ public class Receiver implements Observer {
             String userInput = new Scanner(System.in).nextLine();
 
             switch (userInput.toUpperCase()) {
+                case "SUBSCRIBE":
+                    transport.send(new Message(CommandType.SUBSCRIBE, null));
+                    break;
                 case "SEND":
                     System.out.println("Type message to Broker:");
                     String messageContent = new Scanner(System.in).nextLine();

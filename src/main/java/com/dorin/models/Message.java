@@ -1,4 +1,4 @@
-package com.dorin.messagebroker;
+package com.dorin.models;
 
 import java.io.Serializable;
 

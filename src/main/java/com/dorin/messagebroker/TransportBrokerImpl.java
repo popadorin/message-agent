@@ -1,6 +1,9 @@
 package com.dorin.messagebroker;
 
+import com.dorin.helpers.BytesInfo;
+import com.dorin.models.Message;
 import com.dorin.transport.TransportServer;
+import com.dorin.helpers.MessageInfo;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 
@@ -28,15 +31,22 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
     }
 
     @Override
+    public void send(Integer id, Message message) {
+        byte[] serializedMessage = SerializationUtils.serialize(message);
+        transportServer.send(id, serializedMessage);
+    }
+
+    @Override
     public void close() {
         transportServer.stop();
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        Message message = SerializationUtils.deserialize((byte [])arg);
+        BytesInfo bytesInfo = (BytesInfo) arg;
+        Message message = SerializationUtils.deserialize(bytesInfo.getObjectBytes());
 
         setChanged();
-        notifyObservers(message);
+        notifyObservers(new MessageInfo(bytesInfo.getId(), message));
     }
 }

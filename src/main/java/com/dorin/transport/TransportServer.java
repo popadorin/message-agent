@@ -1,5 +1,6 @@
 package com.dorin.transport;
 
+import com.dorin.helpers.BytesInfo;
 import org.apache.log4j.Logger;
 
 import java.net.*;
@@ -36,6 +37,13 @@ public class TransportServer extends Observable implements Runnable {
         }
     }
 
+    public void send(Integer id, byte[] serializedMessage) {
+        OptionalInt clientIndex = findClient(id);
+        TransporterServerThread client = clients.get(clientIndex.getAsInt());
+
+        client.send(serializedMessage);
+    }
+
     public void sendToAllClients(byte[] message) {
         for (TransporterServerThread client : clients) {
             client.send(message);
@@ -51,7 +59,7 @@ public class TransportServer extends Observable implements Runnable {
 
     synchronized void handle(Integer id, byte[] input) {
         setChanged();
-        notifyObservers(input);
+        notifyObservers(new BytesInfo(id, input));
     }
 
     synchronized void remove(Integer id) {

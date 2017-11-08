@@ -1,5 +1,5 @@
-import com.dorin.messagebroker.CommandType;
-import com.dorin.messagebroker.Message;
+import com.dorin.models.CommandType;
+import com.dorin.models.Message;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
