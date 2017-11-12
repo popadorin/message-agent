@@ -1,5 +1,7 @@
 package com.dorin.receiver;
 
+import com.dorin.helpers.MessageInfo;
+import com.dorin.models.Channel;
 import com.dorin.models.CommandType;
 import com.dorin.models.Message;
 import org.apache.log4j.Logger;
@@ -13,20 +15,12 @@ public class Receiver implements Observer {
     private static final TransportReceiverImpl transport = new TransportReceiverImpl();
 
     private Receiver() {
+        transport.listenFromBroker();
         transport.addObserver(this);
     }
 
     public static void main(String[] args) {
         LOGGER.info("Receiver started");
-
-        try {
-            Thread.sleep(2000);
-            transport.listenFromBroker();
-        } catch (InterruptedException e) {
-            LOGGER.error("thread sleep interrupted exception occurred!");
-        }
-
-        transport.listenFromBroker();
 
         new Receiver(); // activate observer
 
@@ -38,12 +32,28 @@ public class Receiver implements Observer {
 
             switch (userInput.toUpperCase()) {
                 case "SUBSCRIBE":
-                    transport.send(new Message(CommandType.SUBSCRIBE, null));
+                    System.out.println("To channel:");
+                    Channel channel;
+                    try {
+                        channel = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
+                    } catch (IllegalArgumentException iae) {
+                        LOGGER.error("channel not set");
+                        channel = null;
+                    }
+                    transport.send(new MessageInfo(null, channel, CommandType.SUBSCRIBE));
                     break;
                 case "SEND":
-                    System.out.println("Type message to Broker:");
+                    System.out.println("Insert message to Broker:");
                     String messageContent = new Scanner(System.in).nextLine();
-                    transport.send(new Message(CommandType.GET, messageContent));
+                    System.out.println("Type channel:");
+                    Channel channelToSend;
+                    try {
+                        channelToSend = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
+                    } catch (IllegalArgumentException iae) {
+                        channelToSend = null;
+                    }
+                    Message message = new Message(messageContent);
+                    transport.send(new MessageInfo(message, channelToSend, CommandType.PUT));
                     break;
                 case "EXIT":
                     isStopped = true;

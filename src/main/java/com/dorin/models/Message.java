@@ -3,11 +3,9 @@ package com.dorin.models;
 import java.io.Serializable;
 
 public class Message implements Serializable {
-    private CommandType commandType;
     private String content;
 
-    public Message(CommandType commandType, String content) {
-        this.commandType = commandType;
+    public Message(String content) {
         this.content = content;
     }
 
@@ -15,15 +13,11 @@ public class Message implements Serializable {
         return content;
     }
 
-    public CommandType getCommandType() {
-        return commandType;
-    }
-
     @Override
     public String toString() {
         return "Message{" +
-                "commandType=" + commandType +
-                ", content='" + content + '\'' +
+                "content='" + content + '\'' +
                 '}';
     }
+
 }

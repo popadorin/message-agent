@@ -1,5 +1,6 @@
 package com.dorin.sender;
 
+import com.dorin.helpers.MessageInfo;
 import com.dorin.models.Message;
 import com.dorin.transport.TransporterClient;
 import org.apache.commons.lang3.SerializationUtils;
@@ -18,9 +19,9 @@ public class TransportSenderImpl implements TransportSender {
     }
 
     @Override
-    public void sendToBroker(Message message) {
+    public void sendToBroker(MessageInfo messageInfo) {
         try {
-            byte[] serializedMessage = SerializationUtils.serialize(message);
+            byte[] serializedMessage = SerializationUtils.serialize(messageInfo);
             transportClient.send(serializedMessage);
             LOGGER.info("Message successfully sent to broker");
         } catch (IOException e) {

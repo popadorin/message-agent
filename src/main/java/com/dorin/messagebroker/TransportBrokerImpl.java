@@ -16,7 +16,7 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
 
     public TransportBrokerImpl() {
         LOGGER.info("Started");
-        new Thread(() -> transportServer = new TransportServer(8878)).start();
+        transportServer = new TransportServer(8878);
     }
 
     @Override
@@ -44,9 +44,10 @@ public class TransportBrokerImpl extends Observable implements TransportBroker, 
     @Override
     public void update(Observable o, Object arg) {
         BytesInfo bytesInfo = (BytesInfo) arg;
-        Message message = SerializationUtils.deserialize(bytesInfo.getObjectBytes());
+        MessageInfo messageInfo = SerializationUtils.deserialize(bytesInfo.getObjectBytes());
+        messageInfo.setId(bytesInfo.getId());
 
         setChanged();
-        notifyObservers(new MessageInfo(bytesInfo.getId(), message));
+        notifyObservers(messageInfo);
     }
 }

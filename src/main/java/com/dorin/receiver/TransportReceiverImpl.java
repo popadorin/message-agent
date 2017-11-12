@@ -1,5 +1,6 @@
 package com.dorin.receiver;
 
+import com.dorin.helpers.MessageInfo;
 import com.dorin.models.Message;
 import com.dorin.transport.TransporterClient;
 import org.apache.commons.lang3.SerializationUtils;
@@ -15,7 +16,7 @@ public class TransportReceiverImpl extends Observable implements Observer, Trans
 
     public TransportReceiverImpl() {
         LOGGER.info("Started");
-        new Thread(() -> transportClient = new TransporterClient("localhost", 8878)).start();
+        transportClient = new TransporterClient("localhost", 8878);
     }
 
     @Override
@@ -24,9 +25,9 @@ public class TransportReceiverImpl extends Observable implements Observer, Trans
     }
 
     @Override
-    public void send(Message message) {
+    public void send(MessageInfo messageInfo) {
         try {
-            byte[] serializedMessage = SerializationUtils.serialize(message);
+            byte[] serializedMessage = SerializationUtils.serialize(messageInfo);
             transportClient.send(serializedMessage);
             LOGGER.info("Message successfully sent message to broker");
         } catch (IOException e) {

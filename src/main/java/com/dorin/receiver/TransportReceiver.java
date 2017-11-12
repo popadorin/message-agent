@@ -1,9 +1,9 @@
 package com.dorin.receiver;
 
-import com.dorin.models.Message;
+import com.dorin.helpers.MessageInfo;
 
 public interface TransportReceiver {
     void listenFromBroker();
-    void send(Message message);
+    void send(MessageInfo messageInfo);
     void close();
 }
