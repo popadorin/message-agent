@@ -25,6 +25,9 @@ public class MessageBroker implements Observer {
     private static MessageQueue facebookMQ = new MessageQueue();
     private static MessageQueue youtubeMQ = new MessageQueue();
 
+    // dynamic queues
+    private List<MessageQueue> queues = new ArrayList<>();
+
     private MessageBroker() {
         transport.listenToMessages();
         transport.addObserver(this);
@@ -104,36 +107,25 @@ public class MessageBroker implements Observer {
     private void treatMessageInput(MessageInfo inputInfo) {
         switch (inputInfo.getCommandType()) {
             case SUBSCRIBE:
-                if (inputInfo.getMessage().getContent() == null) {
-                    LOGGER.info("Client " + inputInfo.getId() + " wants to subscribe");
+                if (inputInfo.getMessage() == null) {
                     subscribers.add(new Subscriber(inputInfo.getId()));
                 } else {
-                    LOGGER.info("Client " + inputInfo.getId() + " wants to subscribe to channel " +
-                            inputInfo.getMessage().getContent());
-
-                    treatConcreteSubscribers(inputInfo);
+                    subscribers.add(new Subscriber(inputInfo.getId(), inputInfo.getChannel()));
                 }
                 break;
             case GET:
+                if (inputInfo.getChannel() == null) {
+                    transport.send(inputInfo.getId(), generalMessageQueue.pop());
+                } else {
+                    MessageQueue mq = getQueueFromChannel(inputInfo.getChannel());
+                    transport.send(inputInfo.getId(), mq.pop());
+                }
                 break;
             case PUT:
                 if (inputInfo.getChannel() == null) {
                     generalMessageQueue.push(inputInfo.getMessage());
                 } else {
-                    switch (inputInfo.getChannel()) {
-                        case GOOGLE:
-                            googleMQ.push(inputInfo.getMessage());
-                            break;
-                        case FACEBOOK:
-                            facebookMQ.push(inputInfo.getMessage());
-                            break;
-                        case YOUTUBE:
-                            youtubeMQ.push(inputInfo.getMessage());
-                            break;
-                        default:
-                            generalMessageQueue.push(inputInfo.getMessage());
-                            break;
-                    }
+                    putMessageToQueueByChannel(inputInfo.getMessage(), inputInfo.getChannel());
                 }
                 break;
             default:
@@ -142,19 +134,33 @@ public class MessageBroker implements Observer {
 
     }
 
-    private void treatConcreteSubscribers(MessageInfo inputInfo) {
-        switch (inputInfo.getMessage().getContent().toUpperCase()) {
-            case "GOOGLE":
-                subscribers.add(new Subscriber(inputInfo.getId(), Channel.GOOGLE));
+    private void putMessageToQueueByChannel(Message message, Channel channel) {
+        switch (channel) {
+            case GOOGLE:
+                googleMQ.push(message);
                 break;
-            case "FACEBOOK":
-                subscribers.add(new Subscriber(inputInfo.getId(), Channel.FACEBOOK));
+            case FACEBOOK:
+                facebookMQ.push(message);
                 break;
-            case "YOUTUBE":
-                subscribers.add(new Subscriber(inputInfo.getId(), Channel.YOUTUBE));
+            case YOUTUBE:
+                youtubeMQ.push(message);
                 break;
             default:
+                generalMessageQueue.push(message);
                 break;
+        }
+    }
+
+    private MessageQueue getQueueFromChannel(Channel channel) {
+        switch (channel) {
+            case GOOGLE:
+                return googleMQ;
+            case YOUTUBE:
+                return youtubeMQ;
+            case FACEBOOK:
+                return facebookMQ;
+            default:
+                return null;
         }
     }
 

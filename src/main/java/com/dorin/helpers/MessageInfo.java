@@ -12,8 +12,6 @@ public class MessageInfo implements Serializable {
     private Channel channel;
     private CommandType commandType;
 
-
-
     public MessageInfo(Message message, Channel channel, CommandType commandType) {
         this.message = message;
         this.channel = channel;
@@ -38,5 +36,15 @@ public class MessageInfo implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return "MessageInfo{" +
+                "id=" + id +
+                ", message=" + message +
+                ", channel=" + channel +
+                ", commandType=" + commandType +
+                '}';
     }
 }

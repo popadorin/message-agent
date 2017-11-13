@@ -24,17 +24,7 @@ public class Sender {
 
             switch (userInput.toUpperCase()) {
                 case "SEND":
-                    System.out.println("Insert message:");
-                    String messageContent = new Scanner(System.in).nextLine();
-                    System.out.println("Type channel:");
-                    Channel channel;
-                    try {
-                        channel = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
-                    } catch (IllegalArgumentException iae) {
-                        channel = null;
-                    }
-                    Message message = new Message(messageContent);
-                    transport.sendToBroker(new MessageInfo(message, channel, CommandType.PUT));
+                    treatSend();
                     break;
                 case "EXIT":
                     isStopped = true;
@@ -46,5 +36,19 @@ public class Sender {
         }
 
         LOGGER.info("Sender Stopped");
+    }
+
+    private static void treatSend() {
+        System.out.println("Insert message:");
+        String messageContent = new Scanner(System.in).nextLine();
+        System.out.println("Type channel:");
+        Channel channel;
+        try {
+            channel = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
+        } catch (IllegalArgumentException iae) {
+            channel = null;
+        }
+        Message message = new Message(messageContent);
+        transport.sendToBroker(new MessageInfo(message, channel, CommandType.PUT));
     }
 }

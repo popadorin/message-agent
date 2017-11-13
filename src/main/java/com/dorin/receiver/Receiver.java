@@ -32,28 +32,10 @@ public class Receiver implements Observer {
 
             switch (userInput.toUpperCase()) {
                 case "SUBSCRIBE":
-                    System.out.println("To channel:");
-                    Channel channel;
-                    try {
-                        channel = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
-                    } catch (IllegalArgumentException iae) {
-                        LOGGER.error("channel not set");
-                        channel = null;
-                    }
-                    transport.send(new MessageInfo(null, channel, CommandType.SUBSCRIBE));
+                    treatSubscribe();
                     break;
                 case "SEND":
-                    System.out.println("Insert message to Broker:");
-                    String messageContent = new Scanner(System.in).nextLine();
-                    System.out.println("Type channel:");
-                    Channel channelToSend;
-                    try {
-                        channelToSend = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
-                    } catch (IllegalArgumentException iae) {
-                        channelToSend = null;
-                    }
-                    Message message = new Message(messageContent);
-                    transport.send(new MessageInfo(message, channelToSend, CommandType.PUT));
+                    treatSend();
                     break;
                 case "EXIT":
                     isStopped = true;
@@ -67,8 +49,43 @@ public class Receiver implements Observer {
         LOGGER.info("Receiver Stopped");
     }
 
+    private static void treatSend() {
+        System.out.println("Type command:");
+        CommandType commandType;
+        try {
+            commandType = CommandType.valueOf(new Scanner(System.in).nextLine().toUpperCase());
+        } catch (IllegalArgumentException iae) {
+            LOGGER.error("There is no such command-type, please insert message information again:");
+            return;
+        }
+        System.out.println("Insert message to Broker:");
+        String messageContent = new Scanner(System.in).nextLine();
+        System.out.println("Type channel:");
+        Channel channelToSend;
+        try {
+            channelToSend = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
+        } catch (IllegalArgumentException iae) {
+            channelToSend = null;
+        }
+        Message message = new Message(messageContent);
+        transport.send(new MessageInfo(message, channelToSend, commandType));
+    }
+
+    private static void treatSubscribe() {
+        System.out.println("To channel:");
+        Channel channel;
+        try {
+            channel = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
+        } catch (IllegalArgumentException iae) {
+            LOGGER.error("channel not set");
+            channel = null;
+        }
+        transport.send(new MessageInfo(null, channel, CommandType.SUBSCRIBE));
+    }
+
     @Override
     public void update(Observable o, Object arg) {
         LOGGER.info("Received message: " + arg);
     }
+
 }
