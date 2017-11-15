@@ -42,6 +42,26 @@ public class MessageBroker implements Observer {
                 String userInput = new Scanner(System.in).nextLine();
 
                 switch (userInput.toUpperCase().trim()) {
+                    case "LS":
+                        System.out.println("List all the messages:");
+
+                        System.out.println("From general:");
+                        generalMessageQueue.getQueue().forEach(System.out::println);
+
+                        System.out.println("\nFrom persistent queues:");
+                        for (String channel : persistantQueues.keySet()) {
+                            System.out.println("Queue: " + channel);
+                            MessageQueue messageQueue = persistantQueues.get(channel);
+                            messageQueue.getQueue().forEach(System.out::println);
+                        }
+
+                        System.out.println("\nFrom nonpersistent queues:");
+                        for (String channel : nonpersistantQueues.keySet()) {
+                            System.out.println("Queue: " + channel);
+                            MessageQueue messageQueue = nonpersistantQueues.get(channel);
+                            messageQueue.getQueue().forEach(System.out::println);
+                        }
+                        break;
                     case "BACKUP GENERAL MQ":
                         mqBackuper.backupMessageQueue(generalMessageQueue);
                         break;
