@@ -1,6 +1,6 @@
 package com.dorin.receiver;
 
-import com.dorin.helpers.MessageInfo;
+import com.dorin.models.MessageInfo;
 import com.dorin.models.Message;
 import com.dorin.transport.TransporterClient;
 import org.apache.commons.lang3.SerializationUtils;

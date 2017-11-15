@@ -1,6 +1,6 @@
 package com.dorin.receiver;
 
-import com.dorin.helpers.MessageInfo;
+import com.dorin.models.MessageInfo;
 import com.dorin.models.Channel;
 import com.dorin.models.CommandType;
 import com.dorin.models.Message;
@@ -61,25 +61,16 @@ public class Receiver implements Observer {
         System.out.println("Insert message to Broker:");
         String messageContent = new Scanner(System.in).nextLine();
         System.out.println("Type channel:");
-        Channel channelToSend;
-        try {
-            channelToSend = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
-        } catch (IllegalArgumentException iae) {
-            channelToSend = null;
-        }
+        String channelToSend = new Scanner(System.in).nextLine().toUpperCase();
+
         Message message = new Message(messageContent);
         transport.send(new MessageInfo(message, channelToSend, commandType));
     }
 
     private static void treatSubscribe() {
         System.out.println("To channel:");
-        Channel channel;
-        try {
-            channel = Channel.valueOf(new Scanner(System.in).nextLine().toUpperCase());
-        } catch (IllegalArgumentException iae) {
-            LOGGER.error("channel not set");
-            channel = null;
-        }
+        String channel = new Scanner(System.in).nextLine().toUpperCase();
+
         transport.send(new MessageInfo(null, channel, CommandType.SUBSCRIBE));
     }
 

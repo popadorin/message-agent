@@ -1,9 +1,9 @@
 package com.dorin.messagebroker;
 
-import com.dorin.helpers.BytesInfo;
+import com.dorin.models.BytesInfo;
 import com.dorin.models.Message;
 import com.dorin.transport.TransportServer;
-import com.dorin.helpers.MessageInfo;
+import com.dorin.models.MessageInfo;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.log4j.Logger;
 

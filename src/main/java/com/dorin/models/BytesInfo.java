@@ -1,4 +1,4 @@
-package com.dorin.helpers;
+package com.dorin.models;
 
 public class BytesInfo {
     private Integer id;

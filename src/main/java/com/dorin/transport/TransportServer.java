@@ -1,6 +1,6 @@
 package com.dorin.transport;
 
-import com.dorin.helpers.BytesInfo;
+import com.dorin.models.BytesInfo;
 import org.apache.log4j.Logger;
 
 import java.net.*;

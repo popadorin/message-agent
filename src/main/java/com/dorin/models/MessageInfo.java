@@ -1,20 +1,30 @@
-package com.dorin.helpers;
-
-import com.dorin.models.Channel;
-import com.dorin.models.CommandType;
-import com.dorin.models.Message;
+package com.dorin.models;
 
 import java.io.Serializable;
 
 public class MessageInfo implements Serializable {
     transient private Integer id;
     private Message message;
-    private Channel channel;
+    private String channel;
+    private ChannelType channelType;
     private CommandType commandType;
 
-    public MessageInfo(Message message, Channel channel, CommandType commandType) {
+    public MessageInfo(String channel, ChannelType channelType, CommandType commandType) {
+        this.channel = channel;
+        this.channelType = channelType;
+        this.commandType = commandType;
+    }
+
+    public MessageInfo(Message message, String channel, CommandType commandType) {
         this.message = message;
         this.channel = channel;
+        this.commandType = commandType;
+    }
+
+    public MessageInfo(Message message, String channel, ChannelType channelType, CommandType commandType) {
+        this.message = message;
+        this.channel = channel;
+        this.channelType = channelType;
         this.commandType = commandType;
     }
 
@@ -26,8 +36,12 @@ public class MessageInfo implements Serializable {
         return message;
     }
 
-    public Channel getChannel() {
+    public String getChannel() {
         return channel;
+    }
+
+    public ChannelType getChannelType() {
+        return channelType;
     }
 
     public CommandType getCommandType() {
@@ -44,6 +58,7 @@ public class MessageInfo implements Serializable {
                 "id=" + id +
                 ", message=" + message +
                 ", channel=" + channel +
+                ", channelType=" + channelType +
                 ", commandType=" + commandType +
                 '}';
     }

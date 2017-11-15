@@ -1,10 +1,6 @@
 package com.dorin.messagebroker;
 
-import com.dorin.helpers.MessageInfo;
-import com.dorin.models.Channel;
-import com.dorin.models.CommandType;
-import com.dorin.models.Message;
-import com.dorin.models.Subscriber;
+import com.dorin.models.*;
 import com.dorin.helpers.MQBackuper;
 import org.apache.log4j.Logger;
 
@@ -26,7 +22,8 @@ public class MessageBroker implements Observer {
     private static MessageQueue youtubeMQ = new MessageQueue();
 
     // dynamic queues
-    private List<MessageQueue> queues = new ArrayList<>();
+    private static Map<String, MessageQueue> persistantQueues = new HashMap<>();
+    private static Map<String, MessageQueue> nonpersistantQueues = new HashMap<>();
 
     private MessageBroker() {
         transport.listenToMessages();
@@ -44,19 +41,29 @@ public class MessageBroker implements Observer {
             while (!isStopped) {
                 String userInput = new Scanner(System.in).nextLine();
 
-                switch (userInput.toUpperCase()) {
-                    case "BACKUP":
+                switch (userInput.toUpperCase().trim()) {
+                    case "BACKUP GENERAL MQ":
                         mqBackuper.backupMessageQueue(generalMessageQueue);
                         break;
-                    case "GET BACKUP":
+                    case "GET BACKUP GENERAL MQ":
                         generalMessageQueue = mqBackuper.readBackup();
-                    case "VIEW":
+                    case "VIEW GENERAL":
                         System.out.println("Messages:");
                         generalMessageQueue.getQueue().forEach(System.out::println);
                         break;
-                    case "VIEW GOOGLEMQ":
-                        System.out.println("GoogleMQ messages:");
-                        googleMQ.getQueue().forEach(System.out::println);
+                    case "VIEW":
+                        System.out.println("Insert queue name:");
+                        String queueName = new Scanner(System.in).nextLine().toUpperCase();
+                        if (!existsInQueues(queueName)) {
+                            LOGGER.error("There is no queue - " + queueName);
+                        } else {
+                            System.out.println("Messages:");
+                            if (persistantQueues.containsKey(queueName)) {
+                                persistantQueues.get(queueName).getQueue().forEach(System.out::println);
+                            } else {
+                                nonpersistantQueues.get(queueName).getQueue().forEach(System.out::println);
+                            }
+                        }
                         break;
                     case "VIEW SUBSCRIBERS":
                         System.out.println("Subscribers:");
@@ -75,6 +82,7 @@ public class MessageBroker implements Observer {
                         isStopped = true;
                         break;
                     default:
+                        LOGGER.error("No such command");
                         break;
                 }
 
@@ -106,6 +114,9 @@ public class MessageBroker implements Observer {
 
     private void treatMessageInput(MessageInfo inputInfo) {
         switch (inputInfo.getCommandType()) {
+            case CREATE:
+                createQueue(inputInfo.getChannel(), inputInfo.getChannelType());
+                break;
             case SUBSCRIBE:
                 if (inputInfo.getMessage() == null) {
                     subscribers.add(new Subscriber(inputInfo.getId()));
@@ -117,50 +128,65 @@ public class MessageBroker implements Observer {
                 if (inputInfo.getChannel() == null) {
                     transport.send(inputInfo.getId(), generalMessageQueue.pop());
                 } else {
-                    MessageQueue mq = getQueueFromChannel(inputInfo.getChannel());
-                    transport.send(inputInfo.getId(), mq.pop());
+                    MessageQueue mq = persistantQueues.get(inputInfo.getChannel());
+                    transport.send(inputInfo.getId(),
+                            existsInQueues(inputInfo.getChannel()) ? mq.pop() : new Message("ERROR"));
                 }
                 break;
             case PUT:
                 if (inputInfo.getChannel() == null) {
                     generalMessageQueue.push(inputInfo.getMessage());
                 } else {
-                    putMessageToQueueByChannel(inputInfo.getMessage(), inputInfo.getChannel());
+                    if (existsInQueues(inputInfo.getChannel())) {
+                        if (persistantQueues.containsKey(inputInfo.getChannel())) {
+                            persistantQueues.get(inputInfo.getChannel()).push(inputInfo.getMessage());
+                        } else {
+                            nonpersistantQueues.get(inputInfo.getChannel()).push(inputInfo.getMessage());
+                        }
+                    } else {
+                        ChannelType channelType = inputInfo.getChannelType();
+                        putMessageToQueueByChannel(inputInfo.getMessage(), inputInfo.getChannel(),
+                                channelType == null ? ChannelType.NONPERSISTENT : channelType);
+                    }
                 }
                 break;
             default:
+                LOGGER.error("Something wrong with the command-type");
                 break;
         }
 
     }
 
-    private void putMessageToQueueByChannel(Message message, Channel channel) {
-        switch (channel) {
-            case GOOGLE:
-                googleMQ.push(message);
-                break;
-            case FACEBOOK:
-                facebookMQ.push(message);
-                break;
-            case YOUTUBE:
-                youtubeMQ.push(message);
-                break;
-            default:
-                generalMessageQueue.push(message);
-                break;
+    private void createQueue(String channel, ChannelType channelType) {
+        LOGGER.info("create queue: " + channel  + ", queueType: " + channelType);
+        MessageQueue messageQueue = new MessageQueue();
+        if (channelType.equals(ChannelType.PERSISTENT)) {
+            persistantQueues.put(channel, messageQueue);
+        } else {
+            nonpersistantQueues.put(channel, messageQueue);
         }
     }
 
-    private MessageQueue getQueueFromChannel(Channel channel) {
-        switch (channel) {
-            case GOOGLE:
-                return googleMQ;
-            case YOUTUBE:
-                return youtubeMQ;
-            case FACEBOOK:
-                return facebookMQ;
+    private static boolean existsInQueues(String channel) {
+        return persistantQueues.containsKey(channel) ||
+                nonpersistantQueues.containsKey(channel);
+    }
+
+    private void putMessageToQueueByChannel(Message message, String channel, ChannelType channelType) {
+        if (!existsInQueues(channel)) {
+            createQueue(channel, channelType);
+        }
+
+        switch (channelType) {
+            case PERSISTENT:
+                persistantQueues.get(channel).push(message);
+                break;
+            case NONPERSISTENT:
+                nonpersistantQueues.get(channel).push(message);
+                break;
             default:
-                return null;
+                LOGGER.error("Something wrong with channel-type");
+                break;
         }
     }
 
