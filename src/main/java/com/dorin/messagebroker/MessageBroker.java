@@ -139,37 +139,16 @@ public class MessageBroker implements Observer {
                 createQueue(inputInfo.getChannel(), inputInfo.getChannelType());
                 break;
             case SUBSCRIBE:
-                if (inputInfo.getMessage() == null) {
-                    subscribers.add(new Subscriber(inputInfo.getId()));
-                } else {
-                    subscribers.add(new Subscriber(inputInfo.getId(), inputInfo.getChannel()));
-                }
+                treatSubscribe(inputInfo.getId(), inputInfo.getChannel(), inputInfo.getMessage());
+
                 break;
             case GET:
-                if (inputInfo.getChannel() == null) {
-                    transport.send(inputInfo.getId(), generalMessageQueue.pop());
-                } else {
-                    MessageQueue mq = persistantQueues.get(inputInfo.getChannel());
-                    transport.send(inputInfo.getId(),
-                            existsInQueues(inputInfo.getChannel()) ? mq.pop() : new Message(NO_SUCH_CHANNEL));
-                }
+                treatGet(inputInfo.getId(), inputInfo.getChannel());
+
                 break;
             case PUT:
-                if (inputInfo.getChannel() == null) {
-                    generalMessageQueue.push(inputInfo.getMessage());
-                } else {
-                    if (existsInQueues(inputInfo.getChannel())) {
-                        if (persistantQueues.containsKey(inputInfo.getChannel())) {
-                            persistantQueues.get(inputInfo.getChannel()).push(inputInfo.getMessage());
-                        } else {
-                            nonpersistantQueues.get(inputInfo.getChannel()).push(inputInfo.getMessage());
-                        }
-                    } else {
-                        ChannelType channelType = inputInfo.getChannelType();
-                        putMessageToQueueByChannel(inputInfo.getMessage(), inputInfo.getChannel(),
-                                channelType == null ? ChannelType.NONPERSISTENT : channelType);
-                    }
-                }
+                treatPut(inputInfo.getChannelType(), inputInfo.getChannel(), inputInfo.getMessage());
+
                 break;
             default:
                 LOGGER.error("Something wrong with the command-type");
@@ -177,6 +156,42 @@ public class MessageBroker implements Observer {
         }
 
     }
+
+    private void treatSubscribe(Integer id, String channel, Message message) {
+        if (message == null) {
+            subscribers.add(new Subscriber(id));
+        } else {
+            subscribers.add(new Subscriber(id, channel));
+        }
+    }
+
+    private void treatGet(Integer id, String channel) {
+        if (channel == null) {
+            transport.send(id, generalMessageQueue.pop());
+        } else {
+            MessageQueue mq = persistantQueues.get(channel);
+            transport.send(id,
+                    existsInQueues(channel) ? mq.pop() : new Message(NO_SUCH_CHANNEL));
+        }
+    }
+
+    private void treatPut(ChannelType channelType, String channel, Message message) {
+        if (channel == null) {
+            generalMessageQueue.push(message);
+        } else {
+            if (existsInQueues(channel)) {
+                if (persistantQueues.containsKey(channel)) {
+                    persistantQueues.get(channel).push(message);
+                } else {
+                    nonpersistantQueues.get(channel).push(message);
+                }
+            } else {
+                putMessageToQueueByChannel(message, channel,
+                        channelType == null ? ChannelType.NONPERSISTENT : channelType);
+            }
+        }
+    }
+
 
     private void createQueue(String channel, ChannelType channelType) {
         LOGGER.info("create queue: " + channel  + ", queueType: " + channelType);
