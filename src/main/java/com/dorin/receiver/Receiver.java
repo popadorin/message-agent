@@ -1,7 +1,6 @@
 package com.dorin.receiver;
 
 import com.dorin.models.MessageInfo;
-import com.dorin.models.Channel;
 import com.dorin.models.CommandType;
 import com.dorin.models.Message;
 import org.apache.log4j.Logger;
@@ -26,7 +25,7 @@ public class Receiver implements Observer {
 
         boolean isStopped = false;
         while (!isStopped) {
-            System.out.println("Commands: SEND, EXIT");
+            System.out.println("Commands: SUBSCRIBE, SEND, EXIT");
             System.out.println("Choose command:");
             String userInput = new Scanner(System.in).nextLine();
 
@@ -50,7 +49,7 @@ public class Receiver implements Observer {
     }
 
     private static void treatSend() {
-        System.out.println("Type command:");
+        System.out.println("Type command: (GET, PUT)");
         CommandType commandType;
         try {
             commandType = CommandType.valueOf(new Scanner(System.in).nextLine().toUpperCase());
@@ -58,20 +57,24 @@ public class Receiver implements Observer {
             LOGGER.error("There is no such command-type, please insert message information again:");
             return;
         }
-        System.out.println("Insert message to Broker:");
-        String messageContent = new Scanner(System.in).nextLine();
-        System.out.println("Type channel:");
-        String channelToSend = new Scanner(System.in).nextLine().toUpperCase();
 
-        Message message = new Message(messageContent);
-        transport.send(new MessageInfo(message, channelToSend, commandType));
+        Message message = null;
+        if (commandType.equals(CommandType.PUT)) {
+            System.out.println("Insert message to Broker:");
+            String messageContent = new Scanner(System.in).nextLine();
+            message = new Message(messageContent);
+        }
+        System.out.println("Type channel:");
+        String channel = new Scanner(System.in).nextLine().toUpperCase();
+
+        transport.send(new MessageInfo(message, channel, commandType));
     }
 
     private static void treatSubscribe() {
         System.out.println("To channel:");
         String channel = new Scanner(System.in).nextLine().toUpperCase();
 
-        transport.send(new MessageInfo(null, channel, CommandType.SUBSCRIBE));
+        transport.send(new MessageInfo(channel, CommandType.SUBSCRIBE));
     }
 
     @Override

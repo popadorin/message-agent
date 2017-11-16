@@ -11,6 +11,7 @@ public class MessageBroker implements Observer {
     private final static TransportBrokerImpl transport = new TransportBrokerImpl();
     private static final String MQ_PATH = "./src/main/resources/messagequeue-backup";
     private static final MQBackuper mqBackuper = new MQBackuper(MQ_PATH);
+    private static final String NO_SUCH_CHANNEL = "Error: No such channel";
 
     // subscribers
     private static final List<Subscriber> subscribers = new ArrayList<>();
@@ -33,7 +34,7 @@ public class MessageBroker implements Observer {
     public static void main(String[] args) {
         try {
             LOGGER.info("MessageBroker started!");
-            System.out.println("Broker commands: BACKUP, GET BACKUP, VIEW, SEND, EXIT");
+            System.out.println("Broker commands: LS, BACKUP, GET BACKUP, VIEW, SEND, EXIT");
 
             new MessageBroker();
 
@@ -150,7 +151,7 @@ public class MessageBroker implements Observer {
                 } else {
                     MessageQueue mq = persistantQueues.get(inputInfo.getChannel());
                     transport.send(inputInfo.getId(),
-                            existsInQueues(inputInfo.getChannel()) ? mq.pop() : new Message("ERROR"));
+                            existsInQueues(inputInfo.getChannel()) ? mq.pop() : new Message(NO_SUCH_CHANNEL));
                 }
                 break;
             case PUT:

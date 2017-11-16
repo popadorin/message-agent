@@ -28,6 +28,11 @@ public class MessageInfo implements Serializable {
         this.commandType = commandType;
     }
 
+    public MessageInfo(String channel, CommandType commandType) {
+        this.channel = channel;
+        this.commandType = commandType;
+    }
+
     public Integer getId() {
         return id;
     }
