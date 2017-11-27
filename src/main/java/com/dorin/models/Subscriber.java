@@ -20,4 +20,12 @@ public class Subscriber {
     public String getChannel() {
         return channel;
     }
+
+    @Override
+    public String toString() {
+        return "Subscriber{" +
+                "id=" + id +
+                ", channel='" + channel + '\'' +
+                '}';
+    }
 }

@@ -6,21 +6,18 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class MessageBroker implements Observer {
+public class MessageBroker extends Observable implements Observer {
     private final static Logger LOGGER = Logger.getLogger(MessageBroker.class.getName());
-    private final static TransportBrokerImpl transport = new TransportBrokerImpl();
+    public final static TransportBrokerImpl transport = new TransportBrokerImpl();
     private static final String MQ_PATH = "./src/main/resources/messagequeue-backup";
     private static final MQBackuper mqBackuper = new MQBackuper(MQ_PATH);
     private static final String NO_SUCH_CHANNEL = "Error: No such channel";
 
     // subscribers
-    private static final List<Subscriber> subscribers = new ArrayList<>();
-
+//    private static final List<Subscriber> subscribers = new ArrayList<>();
+    private static SubscribersManager subscribersManager;
     // queues
     private static MessageQueue generalMessageQueue = new MessageQueue();
-    private static MessageQueue googleMQ = new MessageQueue();
-    private static MessageQueue facebookMQ = new MessageQueue();
-    private static MessageQueue youtubeMQ = new MessageQueue();
 
     // dynamic queues
     private static Map<String, MessageQueue> persistantQueues = new HashMap<>();
@@ -29,6 +26,8 @@ public class MessageBroker implements Observer {
     private MessageBroker() {
         transport.listenToMessages();
         transport.addObserver(this);
+        subscribersManager = new SubscribersManager(transport);
+        this.addObserver(subscribersManager);
     }
 
     public static void main(String[] args) {
@@ -88,13 +87,13 @@ public class MessageBroker implements Observer {
                         break;
                     case "VIEW SUBSCRIBERS":
                         System.out.println("Subscribers:");
-                        subscribers.forEach(System.out::println);
+                        subscribersManager.getSubscribers().forEach(System.out::println);
                         break;
                     case "SEND":
                         transport.sendToAll(generalMessageQueue.pop());
                         break;
                     case "SEND TO SUBSCRIBERS":
-                        for (Subscriber subscriber : subscribers) {
+                        for (Subscriber subscriber : subscribersManager.getSubscribers()) {
                             transport.send(subscriber.getId(), generalMessageQueue.pop());
                         }
                         break;
@@ -121,7 +120,7 @@ public class MessageBroker implements Observer {
     public void update(Observable o, Object arg) {
         MessageInfo inputInfo = (MessageInfo) arg;
 
-        LOGGER.info("update with: observable - " + o + ", arg - " + arg);
+        LOGGER.info("update with arg - " + arg);
         treatMessageInput(inputInfo);
 
 //        // send to all subscribers the sent message
@@ -139,16 +138,15 @@ public class MessageBroker implements Observer {
                 createQueue(inputInfo.getChannel(), inputInfo.getChannelType());
                 break;
             case SUBSCRIBE:
-                treatSubscribe(inputInfo.getId(), inputInfo.getChannel(), inputInfo.getMessage());
-
+                treatSubscribe(inputInfo.getId(), inputInfo.getChannel());
                 break;
             case GET:
                 treatGet(inputInfo.getId(), inputInfo.getChannel());
-
                 break;
             case PUT:
                 treatPut(inputInfo.getChannelType(), inputInfo.getChannel(), inputInfo.getMessage());
-
+                setChanged();
+                notifyObservers(inputInfo);
                 break;
             default:
                 LOGGER.error("Something wrong with the command-type");
@@ -157,11 +155,16 @@ public class MessageBroker implements Observer {
 
     }
 
-    private void treatSubscribe(Integer id, String channel, Message message) {
-        if (message == null) {
-            subscribers.add(new Subscriber(id));
+    private void treatSubscribe(Integer id, String channel) {
+        if (!existsInQueues(channel)) {
+            transport.send(id, new Message("ERROR: There is no such channel!"));
+        }
+
+        LOGGER.info("Add  subscriber");
+        if (channel == null) {
+            subscribersManager.addSubscriber(new Subscriber(id));
         } else {
-            subscribers.add(new Subscriber(id, channel));
+            subscribersManager.addSubscriber(new Subscriber(id, channel));
         }
     }
 
