@@ -1,5 +1,6 @@
 package com.dorin.receiver;
 
+import com.dorin.models.ChannelType;
 import com.dorin.models.MessageInfo;
 import com.dorin.models.CommandType;
 import com.dorin.models.Message;
@@ -25,11 +26,14 @@ public class Receiver implements Observer {
 
         boolean isStopped = false;
         while (!isStopped) {
-            System.out.println("Commands: SUBSCRIBE, SEND, EXIT");
+            System.out.println("Commands: CREATE, SUBSCRIBE, SEND, EXIT");
             System.out.println("Choose command:");
             String userInput = new Scanner(System.in).nextLine();
 
             switch (userInput.toUpperCase()) {
+                case "CREATE":
+                    treatCreate();
+                    break;
                 case "SUBSCRIBE":
                     treatSubscribe();
                     break;
@@ -46,6 +50,23 @@ public class Receiver implements Observer {
         }
 
         LOGGER.info("Receiver Stopped");
+    }
+
+    private static void treatCreate() {
+        System.out.println("Insert channel name:");
+        String channelName = new Scanner(System.in).nextLine().toUpperCase();
+        System.out.println("Choose channel type: \n 1. PERSISTENT \n 2. NONPERSISTENT");
+
+        ChannelType channelType;
+        try {
+            channelType = ChannelType.getChannelType(Integer.parseInt(
+                    new Scanner(System.in).nextLine().toUpperCase()));
+        } catch (IllegalArgumentException iae) {
+            LOGGER.error("No such channel-type");
+            return;
+        }
+
+        transport.send(new MessageInfo(channelName, channelType, CommandType.CREATE));
     }
 
     private static void treatSend() {

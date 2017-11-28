@@ -26,6 +26,7 @@ public class Sender {
                     treatSend();
                     break;
                 case "EXIT":
+                    transport.sendToBroker(new MessageInfo(CommandType.EXIT));
                     isStopped = true;
                     transport.close();
                     break;

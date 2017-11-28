@@ -137,6 +137,11 @@ public class MessageBroker implements Observer {
             case PUT:
                 treatPut(inputInfo.getChannelType(), inputInfo.getChannel(), inputInfo.getMessage());
                 break;
+            case EXIT:
+                for (Subscriber subscriber : subscribersManager.getSubscribers()) {
+                    transport.send(subscriber.getId(), new Message("Sender " + inputInfo.getId() + " stopped"));
+                }
+                break;
             default:
                 LOGGER.error("Something wrong with the command-type");
                 break;

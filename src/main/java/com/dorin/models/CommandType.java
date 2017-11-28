@@ -4,5 +4,6 @@ public enum CommandType {
     PUT,
     GET,
     SUBSCRIBE,
-    CREATE
+    CREATE,
+    EXIT
 }
