@@ -9,6 +9,11 @@ public class MessageInfo implements Serializable {
     private ChannelType channelType;
     private CommandType commandType;
 
+    public MessageInfo(Message message, String channel) {
+        this.message = message;
+        this.channel = channel;
+    }
+
     public MessageInfo(String channel, ChannelType channelType, CommandType commandType) {
         this.channel = channel;
         this.channelType = channelType;

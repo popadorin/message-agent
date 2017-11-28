@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class MessageBroker extends Observable implements Observer {
+public class MessageBroker implements Observer {
     private final static Logger LOGGER = Logger.getLogger(MessageBroker.class.getName());
     public final static TransportBrokerImpl transport = new TransportBrokerImpl();
     private static final String MQ_PATH = "./src/main/resources/messagequeue-backup";
@@ -14,10 +14,9 @@ public class MessageBroker extends Observable implements Observer {
     private static final String NO_SUCH_CHANNEL = "Error: No such channel";
 
     // subscribers
-//    private static final List<Subscriber> subscribers = new ArrayList<>();
     private static SubscribersManager subscribersManager;
     // queues
-    private static MessageQueue generalMessageQueue = new MessageQueue();
+    private static MessageQueue generalMessageQueue = new MessageQueue(null);
 
     // dynamic queues
     private static Map<String, MessageQueue> persistantQueues = new HashMap<>();
@@ -27,7 +26,7 @@ public class MessageBroker extends Observable implements Observer {
         transport.listenToMessages();
         transport.addObserver(this);
         subscribersManager = new SubscribersManager(transport);
-        this.addObserver(subscribersManager);
+        generalMessageQueue.addObserver(subscribersManager);
     }
 
     public static void main(String[] args) {
@@ -122,14 +121,6 @@ public class MessageBroker extends Observable implements Observer {
 
         LOGGER.info("update with arg - " + arg);
         treatMessageInput(inputInfo);
-
-//        // send to all subscribers the sent message
-//        if (inputInfo.getCommandType().equals(CommandType.PUT)) {
-//            Message message = generalMessageQueue.pop();
-//            for (Subscriber subscriber : subscribers) {
-//                transport.send(subscriber.getId(), message);
-//            }
-//        }
     }
 
     private void treatMessageInput(MessageInfo inputInfo) {
@@ -145,8 +136,6 @@ public class MessageBroker extends Observable implements Observer {
                 break;
             case PUT:
                 treatPut(inputInfo.getChannelType(), inputInfo.getChannel(), inputInfo.getMessage());
-                setChanged();
-                notifyObservers(inputInfo);
                 break;
             default:
                 LOGGER.error("Something wrong with the command-type");
@@ -198,7 +187,8 @@ public class MessageBroker extends Observable implements Observer {
 
     private void createQueue(String channel, ChannelType channelType) {
         LOGGER.info("create queue: " + channel  + ", queueType: " + channelType);
-        MessageQueue messageQueue = new MessageQueue();
+        MessageQueue messageQueue = new MessageQueue(channel);
+        messageQueue.addObserver(subscribersManager);
         if (channelType.equals(ChannelType.PERSISTENT)) {
             persistantQueues.put(channel, messageQueue);
         } else {
