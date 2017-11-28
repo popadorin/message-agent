@@ -6,39 +6,10 @@ public class MessageInfo implements Serializable {
     transient private Integer id;
     private Message message;
     private String channel;
-    private ChannelType channelType;
     private CommandType commandType;
 
-    public MessageInfo(CommandType commandType) {
-        this.commandType = commandType;
-    }
-
-    public MessageInfo(Message message, String channel) {
+    public MessageInfo(Message message, CommandType commandType) {
         this.message = message;
-        this.channel = channel;
-    }
-
-    public MessageInfo(String channel, ChannelType channelType, CommandType commandType) {
-        this.channel = channel;
-        this.channelType = channelType;
-        this.commandType = commandType;
-    }
-
-    public MessageInfo(Message message, String channel, CommandType commandType) {
-        this.message = message;
-        this.channel = channel;
-        this.commandType = commandType;
-    }
-
-    public MessageInfo(Message message, String channel, ChannelType channelType, CommandType commandType) {
-        this.message = message;
-        this.channel = channel;
-        this.channelType = channelType;
-        this.commandType = commandType;
-    }
-
-    public MessageInfo(String channel, CommandType commandType) {
-        this.channel = channel;
         this.commandType = commandType;
     }
 
@@ -52,10 +23,6 @@ public class MessageInfo implements Serializable {
 
     public String getChannel() {
         return channel;
-    }
-
-    public ChannelType getChannelType() {
-        return channelType;
     }
 
     public CommandType getCommandType() {
@@ -72,7 +39,6 @@ public class MessageInfo implements Serializable {
                 "id=" + id +
                 ", message=" + message +
                 ", channel=" + channel +
-                ", channelType=" + channelType +
                 ", commandType=" + commandType +
                 '}';
     }
