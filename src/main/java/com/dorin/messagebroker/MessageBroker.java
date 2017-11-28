@@ -12,6 +12,7 @@ public class MessageBroker implements Observer {
     private static final String MQ_PATH = "./src/main/resources/messagequeue-backup";
     private static final MQBackuper mqBackuper = new MQBackuper(MQ_PATH);
     private static final String NO_SUCH_CHANNEL = "Error: No such channel";
+    private static final List<String> queueTopics = new ArrayList<>();
 
     // subscribers
     private static SubscribersManager subscribersManager;
@@ -61,14 +62,11 @@ public class MessageBroker implements Observer {
                             messageQueue.getQueue().forEach(System.out::println);
                         }
                         break;
+                    case "VIEW TOPICS":
+                        queueTopics.forEach(System.out::println);
+                        break;
                     case "BACKUP GENERAL MQ":
                         mqBackuper.backupMessageQueue(generalMessageQueue);
-                        break;
-                    case "GET BACKUP GENERAL MQ":
-                        generalMessageQueue = mqBackuper.readBackup();
-                    case "VIEW GENERAL":
-                        System.out.println("Messages:");
-                        generalMessageQueue.getQueue().forEach(System.out::println);
                         break;
                     case "VIEW":
                         System.out.println("Insert queue name:");
@@ -127,6 +125,7 @@ public class MessageBroker implements Observer {
         switch (inputInfo.getCommandType()) {
             case CREATE:
                 createQueue(inputInfo.getChannel(), inputInfo.getChannelType());
+                queueTopics.add(inputInfo.getChannel());
                 break;
             case SUBSCRIBE:
                 treatSubscribe(inputInfo.getId(), inputInfo.getChannel());
@@ -150,17 +149,33 @@ public class MessageBroker implements Observer {
     }
 
     private void treatSubscribe(Integer id, String channel) {
-        if (!existsInQueues(channel)) {
-            transport.send(id, new Message("ERROR: There is no such channel!"));
+        boolean existRegex = false;
+        for (String topic : queueTopics) {
+            if (topic.matches(channel)) {
+                LOGGER.info("Add subscriber to: " + topic);
+                subscribersManager.addSubscriber(new Subscriber(id, topic));
+                existRegex = true;
+            }
         }
 
-        LOGGER.info("Add  subscriber");
+        if (!existRegex) {
+            if (!existsInQueues(channel)) {
+                transport.send(id, new Message("ERROR: There is no such channel!"));
+                return;
+            }
+        }
+
+        LOGGER.info("Add subscriber");
         if (channel == null) {
             subscribersManager.addSubscriber(new Subscriber(id));
         } else {
             subscribersManager.addSubscriber(new Subscriber(id, channel));
         }
+
+
+
     }
+
 
     private void treatGet(Integer id, String channel) {
         if (channel == null) {
@@ -188,7 +203,6 @@ public class MessageBroker implements Observer {
             }
         }
     }
-
 
     private void createQueue(String channel, ChannelType channelType) {
         LOGGER.info("create queue: " + channel  + ", queueType: " + channelType);
