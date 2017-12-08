@@ -1,5 +1,7 @@
 package com.dorin.models;
 
+import java.util.Objects;
+
 public class Subscriber {
     private Integer id;
     private String channel;
@@ -27,5 +29,19 @@ public class Subscriber {
                 "id=" + id +
                 ", channel='" + channel + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Subscriber)) return false;
+        Subscriber that = (Subscriber) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(channel, that.channel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, channel);
     }
 }

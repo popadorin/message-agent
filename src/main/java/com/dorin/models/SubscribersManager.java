@@ -18,6 +18,10 @@ public class SubscribersManager implements Observer {
     }
 
     public void addSubscriber(Subscriber subscriber) {
+        if (subscribers.contains(subscriber)) {
+            return;
+        }
+
         subscribers.add(subscriber);
     }
 
@@ -40,7 +44,7 @@ public class SubscribersManager implements Observer {
 
             if (subscriber.getChannel().equals(messageInfo.getChannel())) {
                 LOGGER.info("SEND " + messageInfo.getMessage() +
-                        "TO " + subscriber.getId());
+                        " TO " + subscriber.getId());
 
                 transportBroker.send(subscriber.getId(), messageInfo.getMessage());
             }
