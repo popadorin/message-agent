@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 public class BrokerFacade {
-    private SubscribersManager subscribersManager;
+    private final TransportBroker transport;
+    private final SubscribersManager subscribersManager;
 
     private final List<String> queueTopics;
 
@@ -18,6 +19,7 @@ public class BrokerFacade {
     private final Map<String, MessageQueue> nonpersistantQueues;
 
     public BrokerFacade(TransportBroker transport) {
+        this.transport = transport;
         generalMessageQueue = new MessageQueue(null);
         persistantQueues = new HashMap<>();
         nonpersistantQueues = new HashMap<>();
@@ -30,6 +32,10 @@ public class BrokerFacade {
     public boolean existsInQueues(String channel) {
         return persistantQueues.containsKey(channel) ||
                 nonpersistantQueues.containsKey(channel);
+    }
+
+    public TransportBroker getTransport() {
+        return transport;
     }
 
     public SubscribersManager getSubscribersManager() {
