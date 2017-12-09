@@ -1,7 +1,7 @@
 package com.dorin.messagebroker.commands;
 
 import com.dorin.messagebroker.BrokerFacade;
-import com.dorin.messagebroker.MessageQueue;
+import com.dorin.models.MessageQueue;
 import com.dorin.messagebroker.TransportBroker;
 import com.dorin.models.Command;
 import com.dorin.models.Message;

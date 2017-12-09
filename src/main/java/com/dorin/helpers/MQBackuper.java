@@ -1,6 +1,6 @@
 package com.dorin.helpers;
 
-import com.dorin.messagebroker.MessageQueue;
+import com.dorin.models.MessageQueue;
 import org.apache.log4j.Logger;
 
 import java.io.*;

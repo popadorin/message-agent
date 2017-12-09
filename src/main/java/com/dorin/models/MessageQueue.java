@@ -1,4 +1,4 @@
-package com.dorin.messagebroker;
+package com.dorin.models;
 
 import com.dorin.models.Message;
 import com.dorin.models.MessageInfo;

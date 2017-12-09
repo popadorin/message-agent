@@ -1,5 +1,6 @@
 package com.dorin.messagebroker;
 
+import com.dorin.models.MessageQueue;
 import com.dorin.models.SubscribersManager;
 
 import java.util.ArrayList;
