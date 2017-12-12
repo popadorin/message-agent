@@ -9,7 +9,7 @@ import java.util.*;
 
 public class TransportServer extends Observable implements Runnable {
     private final Logger LOGGER = Logger.getLogger(this.getClass().getName());
-    private final int MAXNROFCLIENTS = 50;
+    private final int MAX_NR_OF_CLIENTS = 50;
     private List<TransporterServerThread> clients = new ArrayList<>();
     private ServerSocket server;
     private Thread thread;
@@ -86,7 +86,7 @@ public class TransportServer extends Observable implements Runnable {
     }
 
     private void addThread(Socket socket) {
-        if (clients.size() < MAXNROFCLIENTS) {
+        if (clients.size() < MAX_NR_OF_CLIENTS) {
             LOGGER.info("Client accepted: " + socket);
             clients.add(new TransporterServerThread(this, socket));
             try {
